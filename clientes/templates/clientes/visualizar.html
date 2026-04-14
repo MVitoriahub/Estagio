@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Visualizar Cliente{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content-panel {
+        background-color: #f8f8f8;
+        border: 1px solid #bfc7ce;
+        min-height: 605px;
+        padding: 18px;
+    }
+
+    .form-title-box {
+        border: 1px solid #bfc7ce;
+        background-color: #f3f3f3;
+        padding: 10px 18px;
+        margin-bottom: 18px;
+    }
+
+    .form-title-box h4 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #3f4c58;
+    }
+
+    .form-box {
+        border: 1px solid #bfc7ce;
+        background-color: #f8f8f8;
+        padding: 24px 20px 28px 20px;
+        max-width: 760px;
+    }
+
+    .info-group {
+        margin-bottom: 20px;
+    }
+
+    .info-label {
+        font-size: 15px;
+        font-weight: 600;
+        color: #3f4c58;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .info-value {
+        border: 2px solid #c4ced7;
+        background-color: #ffffff;
+        min-height: 40px;
+        padding: 8px 12px;
+        color: #5f6d79;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-voltar {
+        background-color: #6c757d;
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-voltar:hover {
+        background-color: #5c636a;
+        color: white;
+    }
+
+    .btn-editar {
+        background-color: #b23ad6;
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-editar:hover {
+        background-color: #9c2fc0;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+
+    <div class="form-title-box">
+        <h4>Visualizar Cliente</h4>
+    </div>
+
+    <div class="form-box">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">ID</label>
+                    <div class="info-value">{{ cliente.id }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">Nome</label>
+                    <div class="info-value">{{ cliente.nome }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">CPF</label>
+                    <div class="info-value">{{ cliente.cpf }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">Contato</label>
+                    <div class="info-value">{{ cliente.contato }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2 justify-content-center">
+            <a href="{% url 'editar_cliente' cliente.id %}" class="btn-editar">Editar</a>
+            <a href="{% url 'listar_clientes' %}" class="btn-voltar">Voltar</a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
