@@ -1,95 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Excluir Cliente{% endblock %}
 
 {% block extra_css %}
-<style>
-    .content-panel {
-        background-color: #f8f8f8;
-        border: 1px solid #bfc7ce;
-        min-height: 605px;
-        padding: 18px;
-    }
-
-    .form-title-box {
-        border: 1px solid #bfc7ce;
-        background-color: #f3f3f3;
-        padding: 10px 18px;
-        margin-bottom: 18px;
-    }
-
-    .form-title-box h4 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 600;
-        color: #3f4c58;
-    }
-
-    .form-box {
-        border: 1px solid #bfc7ce;
-        background-color: #f8f8f8;
-        padding: 30px 20px;
-        max-width: 760px;
-    }
-
-    .alert-delete {
-        background-color: #fff3f3;
-        border: 1px solid #f1c0c0;
-        color: #7a2f2f;
-        padding: 18px;
-        border-radius: 4px;
-        margin-bottom: 24px;
-        font-size: 16px;
-    }
-
-    .cliente-info {
-        background-color: #f3f3f3;
-        border: 1px solid #d5dbe1;
-        padding: 18px;
-        margin-bottom: 24px;
-    }
-
-    .cliente-info p {
-        margin-bottom: 10px;
-        color: #3f4c58;
-        font-size: 15px;
-    }
-
-    .cliente-info strong {
-        display: inline-block;
-        width: 80px;
-    }
-
-    .btn-excluir {
-        background-color: #dc3545;
-        border: none;
-        color: white;
-        font-weight: 600;
-        padding: 10px 28px;
-        border-radius: 4px;
-    }
-
-    .btn-excluir:hover {
-        background-color: #bb2d3b;
-        color: white;
-    }
-
-    .btn-cancelar {
-        background-color: #6c757d;
-        border: none;
-        color: white;
-        font-weight: 600;
-        padding: 10px 24px;
-        border-radius: 4px;
-        text-decoration: none;
-        display: inline-block;
-    }
-
-    .btn-cancelar:hover {
-        background-color: #5c636a;
-        color: white;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -110,6 +25,10 @@
             <p><strong>Nome:</strong> {{ cliente.nome }}</p>
             <p><strong>CPF:</strong> {{ cliente.cpf }}</p>
             <p><strong>Contato:</strong> {{ cliente.contato }}</p>
+            <p><strong>Rua:</strong> {{ cliente.rua }}</p>
+            <p><strong>Número:</strong> {{ cliente.numero }}</p>
+            <p><strong>Bairro:</strong> {{ cliente.bairro }}</p>
+            <p><strong>Cidade:</strong> {{ cliente.cidade }}</p>
         </div>
 
         <form method="POST">
@@ -117,7 +36,7 @@
 
             <div class="d-flex gap-2 justify-content-center">
                 <button type="submit" class="btn-excluir">Excluir</button>
-                <a href="{% url 'listar_clientes' %}" class="btn-cancelar">Cancelar</a>
+                <a href="{% url 'clientes:listar_clientes' %}" class="btn-cancelar">Cancelar</a>
             </div>
         </form>
     </div>

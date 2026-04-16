@@ -1,6 +1,4 @@
-"""
-Django settings for LacinhoSystem project.
-"""
+#Colocar vsenhas em variáveis de ambiente
 
 from pathlib import Path
 
@@ -14,18 +12,24 @@ ALLOWED_HOSTS = []
 
 
 # APPS
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
 
-    # seu app
+THIRD_PARTY_APPS = [
+    #p/ app´s externos(optei por mantê-los, no momento)
+]
+
+LOCAL_APPS = [
     'clientes',
 ]
 
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # MIDDLEWARE
 MIDDLEWARE = [
@@ -46,7 +50,7 @@ ROOT_URLCONF = 'LacinhoSystem.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -85,11 +89,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # INTERNACIONALIZAÇÃO
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'pt-br'
+TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
 
-# ARQUIVOS ESTÁTICOS (CORRETO AGORA)
+# ARQUIVOS ESTÁTICOS 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
