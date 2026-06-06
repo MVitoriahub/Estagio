@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Produto{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+    <div class="form-wrapper">
+        <div class="form-title-box">
+            <h4>Editar Produto</h4>
+        </div>
+
+        <div class="form-box">
+
+            {% if form.errors %}
+            <div class="alert-delete mb-3">
+                Por favor, corrija os erros antes de salvar.
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="row g-4 mx-0">
+
+                    <div class="col-12">
+                        <label class="form-label">Nome do Produto</label>
+                        <input type="text" name="item" class="form-control"
+                               value="{{ produto.item }}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Categoria</label>
+                        <select name="categoria" class="form-control" required>
+                            {% for value, label in form.categoria.field.choices %}
+                            <option value="{{ value }}"
+                                {% if produto.categoria == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Marca</label>
+                        <input type="text" name="marca" class="form-control"
+                               value="{{ produto.marca }}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Coleção</label>
+                        <input type="text" name="colecao" class="form-control"
+                               value="{{ produto.colecao }}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Lucro (%)</label>
+                        <input type="number" name="lucro" class="form-control"
+                               value="{{ produto.lucro|floatformat:2 }}" step="0.01" required>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2 justify-content-center">
+                    <button type="submit" class="btn-salvar">Salvar</button>
+                    <a href="{% url 'produto:listar' %}" class="btn-cancelar">Cancelar</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

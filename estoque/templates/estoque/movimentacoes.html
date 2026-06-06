@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Movimentações{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+
+    <div class="toolbar-box">
+        <a href="{% url 'estoque:registrar' variacao.pk %}" class="btn-novo">+ Registrar Movimentação</a>
+    </div>
+
+    <div class="section-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-semibold text-secondary">
+            Movimentações — {{ variacao.produto.item }} (Tam: {{ variacao.tamanho }})
+            <span class="ms-3 text-dark">Saldo atual: <strong>{{ variacao.quantidade }}</strong></span>
+        </h5>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Quantidade</th>
+                    <th>Observação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mov in movimentacoes %}
+                <tr>
+                    <td>{{ mov.data_movimentacao|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if mov.tipo == 'entrada' %}
+                            <span style="color: #198754; font-weight: 600;">▲ Entrada</span>
+                        {% else %}
+                            <span style="color: #dc3545; font-weight: 600;">▼ Saída</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ mov.quantidade }}</td>
+                    <td>{{ mov.observacao|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        Nenhuma movimentação registrada.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-3 d-flex justify-content-center">
+        <a href="{% url 'estoque:listar' %}" class="btn-cancelar">Voltar ao Estoque</a>
+    </div>
+
+</div>
+
+{% endblock %}

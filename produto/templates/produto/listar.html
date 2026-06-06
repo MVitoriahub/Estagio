@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Gerenciar Clientes{% endblock %}
+{% block title %}Gerenciar Produtos{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/clientes.css' %}">
@@ -12,14 +12,11 @@
 <div class="content-panel">
 
     <div class="toolbar-box">
-        <a href="{% url 'clientes:criar_cliente' %}" class="btn-novo">
-            + Novo Cliente
-        </a>
+        <a href="{% url 'produto:criar' %}" class="btn-novo">+ Novo Produto</a>
     </div>
 
     <div class="section-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-semibold text-secondary">Gerenciar Clientes</h5>
-
+        <h5 class="mb-0 fw-semibold text-secondary">Gerenciar Produtos</h5>
         <form method="get" class="d-flex align-items-center">
             <div class="search-box">
                 <i class="bi bi-search me-2 text-secondary"></i>
@@ -34,35 +31,38 @@
                 <tr>
                     <th>ID</th>
                     <th>Nome</th>
-                    <th>CPF</th>
-                    <th>Contato</th>
-                    <th style="width: 140px;">Ações</th>
+                    <th>Categoria</th>
+                    <th>Marca</th>
+                    <th>Coleção</th>
+                    <th>Variações</th>
+                    <th style="width: 120px;">Ações</th>
                 </tr>
             </thead>
-
             <tbody>
-                {% for cliente in clientes %}
+                {% for produto in produtos %}
                 <tr>
-                    <td>{{ cliente.id }}</td>
-                    <td>{{ cliente.nome }}</td>
-                    <td>{{ cliente.cpf }}</td>
-                    <td>{{ cliente.contato }}</td>
+                    <td>{{ produto.id_item }}</td>
+                    <td>{{ produto.item }}</td>
+                    <td>{{ produto.get_categoria_display }}</td>
+                    <td>{{ produto.marca }}</td>
+                    <td>{{ produto.colecao }}</td>
+                    <td>{{ produto.variacoes.count }}</td>
                     <td>
-                        <a href="{% url 'clientes:visualizar_cliente' cliente.id %}" class="action-icon icon-view">
+                        <a href="{% url 'produto:visualizar' produto.id_item %}" class="action-icon icon-view">
                             <i class="bi bi-eye-fill"></i>
                         </a>
-                        <a href="{% url 'clientes:editar_cliente' cliente.id %}" class="action-icon icon-edit">
+                        <a href="{% url 'produto:editar' produto.id_item %}" class="action-icon icon-edit">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
-                        <a href="{% url 'clientes:excluir_cliente' cliente.id %}" class="action-icon icon-delete">
+                        <a href="{% url 'produto:excluir' produto.id_item %}" class="action-icon icon-delete">
                             <i class="bi bi-trash-fill"></i>
                         </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
-                        Nenhum cliente cadastrado.
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Nenhum produto cadastrado.
                     </td>
                 </tr>
                 {% endfor %}

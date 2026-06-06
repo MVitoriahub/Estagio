@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Visualizar Produto{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+
+    <div class="form-title-box">
+        <h4>Visualizar Produto</h4>
+    </div>
+
+    <div class="form-box">
+        <div class="row g-4 mx-0">
+
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">ID</label>
+                    <div class="info-value">{{ produto.id_item }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">Nome do Produto</label>
+                    <div class="info-value">{{ produto.item }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">Categoria</label>
+                    <div class="info-value">{{ produto.get_categoria_display }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">Marca</label>
+                    <div class="info-value">{{ produto.marca }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">Coleção</label>
+                    <div class="info-value">{{ produto.colecao }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label class="info-label">Lucro (%)</label>
+                    <div class="info-value">{{ produto.lucro }}%</div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="form-title-box mt-4">
+            <h4>Variações</h4>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Tamanho</th>
+                        <th>Quantidade</th>
+                        <th>Valor Bruto</th>
+                        <th>Preço de Venda</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in variacoes %}
+                    <tr>
+                        <td>{{ v.tamanho }}</td>
+                        <td>{{ v.quantidade }}</td>
+                        <td>R$ {{ v.valor_bruto }}</td>
+                        <td>R$ {{ v.preco_venda }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-3">
+                            Nenhuma variação cadastrada.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4 d-flex gap-2 justify-content-center">
+            <a href="{% url 'produto:editar' produto.id_item %}" class="btn-editar">Editar</a>
+            <a href="{% url 'produto:listar' %}" class="btn-voltar">Voltar</a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

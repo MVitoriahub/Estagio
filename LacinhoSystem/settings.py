@@ -1,14 +1,13 @@
-#Colocar vsenhas em variáveis de ambiente
-
 from pathlib import Path
+from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY
-SECRET_KEY = 'django-insecure-m3dz8y@kv@yw^5-i@9m0il*9_0_e!_p7735#a3wqm+fnx)*ie='
-DEBUG = True
-ALLOWED_HOSTS = []
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 
 # APPS
@@ -26,10 +25,11 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    'clientes',
+    'clientes', 'produto', 'estoque'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
 
 # MIDDLEWARE
 MIDDLEWARE = [
@@ -70,11 +70,11 @@ WSGI_APPLICATION = 'LacinhoSystem.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'lacinho',
-        'USER': 'postgres',
-        'PASSWORD': '12345',
-        'HOST': 'localhost',
-        'PORT': '5433',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
 
@@ -95,8 +95,14 @@ USE_I18N = True
 USE_TZ = True
 
 
-# ARQUIVOS ESTÁTICOS 
+# ARQUIVOS ESTÁTICOS
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+
+# AUTENTICAÇÃO
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'

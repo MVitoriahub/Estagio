@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registrar Movimentação{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+    <div class="form-wrapper">
+        <div class="form-title-box">
+            <h4>Registrar Movimentação — {{ variacao.produto.item }} (Tam: {{ variacao.tamanho }})</h4>
+        </div>
+
+        <div class="form-box">
+
+            {% if form.errors %}
+            <div class="alert-delete mb-3">
+                Por favor, corrija os erros antes de salvar.
+            </div>
+            {% endif %}
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert-delete mb-3">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="row g-4 mx-0">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Tipo</label>
+                        <select name="tipo" class="form-control" required>
+                            <option value="entrada" {% if form.tipo.value == 'entrada' %}selected{% endif %}>Entrada</option>
+                            <option value="saida"   {% if form.tipo.value == 'saida'   %}selected{% endif %}>Saída</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Quantidade</label>
+                        <input type="number" name="quantidade" class="form-control"
+                               min="1" placeholder="Ex: 5"
+                               value="{{ form.quantidade.value|default:'' }}" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Observação</label>
+                        <textarea name="observacao" class="form-control" rows="3"
+                                  placeholder="Ex: Chegada de mercadoria, venda avulsa...">{{ form.observacao.value|default:'' }}</textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <p class="text-muted mb-0">
+                            Saldo atual: <strong>{{ variacao.quantidade }} unidades</strong>
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2 justify-content-center">
+                    <button type="submit" class="btn-salvar">Salvar</button>
+                    <a href="{% url 'estoque:listar' %}" class="btn-cancelar">Cancelar</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

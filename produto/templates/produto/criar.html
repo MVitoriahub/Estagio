@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cadastrar Produto{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+    <div class="form-wrapper">
+        <div class="form-title-box">
+            <h4>Cadastrar Produto</h4>
+        </div>
+
+        <div class="form-box">
+
+            {% if form.errors %}
+            <div class="alert-delete mb-3">
+                Por favor, corrija os erros antes de salvar.
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="row g-4 mx-0">
+
+                    <div class="col-12">
+                        <label class="form-label">Nome do Produto</label>
+                        <input type="text" name="item" class="form-control"
+                               placeholder="Ex: Vestido Floral" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Categoria</label>
+                        <select name="categoria" class="form-control" required>
+                            {% for value, label in form.categoria.field.choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Marca</label>
+                        <input type="text" name="marca" class="form-control"
+                               placeholder="Ex: Zara" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Coleção</label>
+                        <input type="text" name="colecao" class="form-control"
+                               placeholder="Ex: Verão 2025" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Lucro (%)</label>
+                        <input type="number" name="lucro" class="form-control"
+                               placeholder="Ex: 30" step="0.01" required>
+                    </div>
+
+                </div>
+
+                <div class="form-title-box mt-4">
+                    <h4>Variações (Tamanho / Quantidade)</h4>
+                </div>
+
+                {{ formset.management_form }}
+
+                <div id="variacoes-container">
+                    {% for variacao_form in formset %}
+                    <div class="form-box mb-3 variacao-item">
+                        <div class="row g-3 mx-0 align-items-end">
+
+                            <div class="col-md-3">
+                                <label class="form-label">Tamanho</label>
+                                <select name="{{ variacao_form.tamanho.html_name }}" class="form-control">
+                                    {% for value, label in variacao_form.tamanho.field.choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Quantidade</label>
+                                <input type="number" name="{{ variacao_form.quantidade.html_name }}"
+                                       class="form-control" placeholder="Ex: 5" min="0">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Valor Bruto (R$)</label>
+                                <input type="number" name="{{ variacao_form.valor_bruto.html_name }}"
+                                       class="form-control" placeholder="Ex: 50.00" step="0.01" min="0">
+                            </div>
+
+                            <div class="col-md-1 d-flex align-items-end pb-1">
+                                <button type="button" class="btn btn-danger btn-sm remover-variacao">✕</button>
+                            </div>
+
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-2 mb-4">
+                    <button type="button" id="btn-adicionar-variacao" class="btn-salvar">
+                        + Adicionar Variação
+                    </button>
+                </div>
+
+                <div class="mt-4 d-flex gap-2 justify-content-center">
+                    <button type="submit" class="btn-salvar">Salvar</button>
+                    <a href="{% url 'produto:listar' %}" class="btn-cancelar">Cancelar</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const container       = document.getElementById('variacoes-container');
+    const totalFormsInput = document.getElementById('id_variacoes-TOTAL_FORMS');
+
+    // Captura o HTML do primeiro item como template antes de qualquer interação
+    const templateItem = container.querySelector('.variacao-item').cloneNode(true);
+    templateItem.querySelectorAll('input').forEach(input => input.value = '');
+
+    // Botão adicionar
+    document.getElementById('btn-adicionar-variacao').addEventListener('click', function () {
+        const totalForms   = parseInt(totalFormsInput.value);
+        const novaVariacao = templateItem.cloneNode(true);
+
+        novaVariacao.innerHTML = novaVariacao.innerHTML.replace(
+            /variacoes-\d+/g,
+            `variacoes-${totalForms}`
+        );
+
+        container.appendChild(novaVariacao);
+        totalFormsInput.value = totalForms + 1;
+    });
+
+    // Botão remover (delegação de evento para capturar itens adicionados dinamicamente)
+    container.addEventListener('click', function (e) {
+        if (e.target.classList.contains('remover-variacao')) {
+            const itens = container.querySelectorAll('.variacao-item');
+            // Impede remover se só restar 1 variação
+            if (itens.length > 1) {
+                e.target.closest('.variacao-item').remove();
+                atualizarIndices();
+            }
+        }
+    });
+
+    // Reindexar campos após remoção
+    function atualizarIndices() {
+        container.querySelectorAll('.variacao-item').forEach((item, index) => {
+            item.querySelectorAll('input, select').forEach(campo => {
+                if (campo.name) {
+                    campo.name = campo.name.replace(/variacoes-\d+/, `variacoes-${index}`);
+                }
+            });
+        });
+        totalFormsInput.value = container.querySelectorAll('.variacao-item').length;
+    }
+</script>
+
+{% endblock %}

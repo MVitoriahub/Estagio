@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nova Variação{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+    <div class="form-wrapper">
+        <div class="form-title-box">
+            <h4>Nova Variação — {{ produto.item }}</h4>
+        </div>
+
+        <div class="form-box">
+
+            {% if form.errors %}
+            <div class="alert-delete mb-3">
+                Por favor, corrija os erros antes de salvar.
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="row g-4 mx-0">
+
+                    <div class="col-md-4">
+                        <label class="form-label">Tamanho</label>
+                        {{ form.tamanho }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Quantidade Inicial</label>
+                        {{ form.quantidade }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Valor Bruto (R$)</label>
+                        {{ form.valor_bruto }}
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2 justify-content-center">
+                    <button type="submit" class="btn-salvar">Salvar</button>
+                    <a href="{% url 'estoque:listar' %}" class="btn-cancelar">Cancelar</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

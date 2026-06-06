@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Excluir Produto{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+
+    <div class="form-title-box">
+        <h4>Excluir Produto</h4>
+    </div>
+
+    <div class="form-box">
+        <div class="alert-delete">
+            Tem certeza que deseja excluir este produto? Todas as variações serão removidas também.
+        </div>
+
+        <div class="cliente-info">
+            <p><strong>ID:</strong> {{ produto.id_item }}</p>
+            <p><strong>Nome:</strong> {{ produto.item }}</p>
+            <p><strong>Categoria:</strong> {{ produto.get_categoria_display }}</p>
+            <p><strong>Marca:</strong> {{ produto.marca }}</p>
+            <p><strong>Coleção:</strong> {{ produto.colecao }}</p>
+            <p><strong>Lucro:</strong> {{ produto.lucro }}%</p>
+            <p><strong>Variações que serão excluídas:</strong></p>
+            <ul>
+                {% for v in produto.variacoes.all %}
+                <li>Tamanho {{ v.tamanho }} — {{ v.quantidade }} unidades</li>
+                {% empty %}
+                <li>Nenhuma variação cadastrada.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="d-flex gap-2 justify-content-center">
+                <button type="submit" class="btn-excluir">Excluir</button>
+                <a href="{% url 'produto:listar' %}" class="btn-cancelar">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}

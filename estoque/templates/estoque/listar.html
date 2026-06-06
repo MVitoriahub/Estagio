@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Estoque{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+
+    <div class="toolbar-box">
+        <a href="{% url 'produto:criar' %}" class="btn-novo">+ Novo Produto</a>
+    </div>
+
+    <div class="section-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-semibold text-secondary">Estoque</h5>
+        <form method="get" class="d-flex align-items-center">
+            <div class="search-box">
+                <i class="bi bi-search me-2 text-secondary"></i>
+                <input type="text" name="q" value="{{ busca }}">
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Tamanho</th>
+                    <th>Quantidade</th>
+                    <th>Preço de Venda</th>
+                    <th>Última Movimentação</th>
+                    <th style="width: 180px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in variacoes %}
+                <tr>
+                    <td>{{ v.produto.item }}</td>
+                    <td>{{ v.produto.get_categoria_display }}</td>
+                    <td>{{ v.tamanho }}</td>
+                    <td>{{ v.quantidade }}</td>
+                    <td>R$ {{ v.preco_venda }}</td>
+                    <td>
+                        {% with ultima=v.movimentacoes.first %}
+                            {% if ultima %}
+                                {{ ultima.data_movimentacao|date:"d/m/Y" }}
+                                — {{ ultima.get_tipo_display }}
+                            {% else %}
+                                Sem movimentação
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td>
+                        <!-- Ver movimentações desta variação -->
+                        <a href="{% url 'estoque:movimentacoes' v.pk %}" class="action-icon icon-view"
+                           title="Ver movimentações">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                        <!-- Registrar entrada/saída -->
+                        <a href="{% url 'estoque:registrar' v.pk %}" class="action-icon icon-edit"
+                           title="Registrar movimentação">
+                            <i class="bi bi-arrow-left-right"></i>
+                        </a>
+                        <!-- Nova variação para o mesmo produto -->
+                        <a href="{% url 'estoque:nova_variacao' v.produto.id_item %}" class="action-icon"
+                           title="Adicionar variação" style="color: #6f42c1;">
+                            <i class="bi bi-plus-circle-fill"></i>
+                        </a>
+                        <!-- Excluir produto -->
+                        <a href="{% url 'produto:excluir' v.produto.id_item %}" class="action-icon icon-delete"
+                           title="Excluir produto">
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Nenhum produto em estoque.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}
