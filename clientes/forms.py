@@ -22,14 +22,21 @@ class ClienteForm(forms.ModelForm):
             'contato': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: (43) 99999-9999'}),
             'rua'    : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Rua das Flores'}),
             'numero' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 123'}),
-            'bairro' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Centro'}),
+            'bairro' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Bairro'}),
             'cidade' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Sertanópolis'}),
         }
 
-    def clean_cpf(self):
-        cpf = self.cleaned_data.get('cpf')
-        # Remove caracteres não numéricos para validar o tamanho
+    def clean_cpf(self):  # ← indentado dentro da classe
+        cpf = self.cleaned_data.get('cpf', '')
         cpf_numeros = ''.join(filter(str.isdigit, cpf))
+
         if len(cpf_numeros) != 11:
             raise forms.ValidationError('CPF inválido. Digite 11 dígitos.')
-        return cpf
+
+        qs = Cliente.todos.filter(cpf=cpf_numeros, deletado=False)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError('Já existe um cliente cadastrado com esse CPF.')
+
+        return cpf_numeros

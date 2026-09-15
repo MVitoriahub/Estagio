@@ -16,6 +16,8 @@ class Cliente(models.Model):
     bairro  = models.CharField(max_length=100)
     cidade  = models.CharField(max_length=100)
 
+    criado_em = models.DateTimeField(auto_now_add=True)
+
     # Soft delete
     deletado    = models.BooleanField(default=False)
     deletado_em = models.DateTimeField(null=True, blank=True)

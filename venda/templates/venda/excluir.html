@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cancelar Venda{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+    <div class="form-wrapper">
+        <div class="form-title-box">
+            <h4>Excluir Venda</h4>
+        </div>
+
+        <div class="form-box">
+
+            <div class="alert-delete mb-4">
+                Tem certeza que deseja excluir esta venda?
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Cliente:</strong> {{ venda.cliente|default:"—" }}
+                </div>
+            </div>
+
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qtd</th>
+                        <th>Tam.</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr>
+                        <td>{{ item.variacao.produto.item }}</td>
+                        <td>{{ item.quantidade }}</td>
+                        <td>{{ item.variacao.tamanho }}</td>
+                        <td>R$ {{ item.valor_total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mt-4 d-flex gap-2 justify-content-center">
+                    <button type="submit" class="btn-salvar" style="background:#dc3545;">
+                        Excluir
+                    </button>
+                    <a href="{% url 'venda:listar' %}" class="btn-cancelar">Cancelar</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

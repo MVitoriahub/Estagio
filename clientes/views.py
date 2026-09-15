@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Cliente
 from .forms import ClienteForm
@@ -20,8 +21,11 @@ def criar_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('clientes:listar_clientes')
+            try:
+                form.save()
+                return redirect('clientes:listar_clientes')
+            except IntegrityError:
+                form.add_error('cpf', 'Já existe um cliente cadastrado com esse CPF.')
     else:
         form = ClienteForm()
 
@@ -38,8 +42,11 @@ def editar_cliente(request, cliente_id):
     if request.method == 'POST':
         form = ClienteForm(request.POST, instance=cliente)
         if form.is_valid():
-            form.save()
-            return redirect('clientes:listar_clientes')
+            try:
+                form.save()
+                return redirect('clientes:listar_clientes')
+            except IntegrityError:
+                form.add_error('cpf', 'Já existe um cliente cadastrado com esse CPF.')
     else:
         form = ClienteForm(instance=cliente)
 
@@ -52,7 +59,7 @@ def editar_cliente(request, cliente_id):
 def excluir_cliente(request, cliente_id):
     cliente = get_object_or_404(Cliente, pk=cliente_id)
     if request.method == 'POST':
-        cliente.delete()  # soft delete
+        cliente.delete()
         return redirect('clientes:listar_clientes')
 
     return render(request, 'clientes/excluir.html', {'cliente': cliente})

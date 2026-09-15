@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Finalizar Venda{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+    <div class="form-wrapper">
+        <div class="form-title-box">
+            <h4>Finalizar Venda</h4>
+        </div>
+
+        <div class="form-box">
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="row g-4 mx-0">
+
+                    <div class="col-12">
+                        <label class="form-label">Cliente</label>
+                        {{ form.cliente }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Pagamento</label>
+                        {{ form.forma_pagamento }}
+                    </div>
+
+                </div>
+
+                <div class="mt-4">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Tam.</th>
+                                <th>Qtd</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in itens %}
+                            <tr>
+                                <td>{{ item.variacao.produto.item }}</td>
+                                <td>{{ item.variacao.tamanho }}</td>
+                                <td>{{ item.quantidade }}</td>
+                                <td>R$ {{ item.valor_total }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="fw-bold">
+                                <td colspan="3">Total</td>
+                                <td>R$ {{ venda.valor_total }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 d-flex gap-2 justify-content-center">
+                    <button type="submit" class="btn-salvar" style="background:#e91e8c;">
+                        Confirmar Venda
+                    </button>
+                    <a href="{% url 'venda:nova' %}" class="btn-cancelar">Voltar</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Venda{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+    <div class="form-wrapper">
+        <div class="form-title-box">
+            <h4>Editar Venda #{{ venda.pk }}</h4>
+        </div>
+
+        <div class="form-box">
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert-delete mb-3">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- Dados da venda -->
+            <form method="POST" class="mb-4 pb-4 border-bottom d-flex align-items-end gap-3 flex-wrap">
+                {% csrf_token %}
+
+                <div style="min-width: 220px;">
+                    <label class="form-label">Cliente</label>
+                    <select name="cliente" class="form-control">
+                        <option value="">Sem cliente</option>
+                        {% for cliente in form_venda.cliente.field.queryset %}
+                        <option value="{{ cliente.pk }}"
+                            {% if venda.cliente_id == cliente.pk %}selected{% endif %}>
+                            {{ cliente }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="min-width: 180px;">
+                    <label class="form-label">Pagamento</label>
+                    <select name="forma_pagamento" class="form-control">
+                        {% for valor, rotulo in form_venda.fields.forma_pagamento.choices %}
+                        <option value="{{ valor }}"
+                            {% if venda.forma_pagamento == valor %}selected{% endif %}>
+                            {{ rotulo }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" name="salvar_venda" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-check2"></i> Salvar
+                </button>
+            </form>
+
+            <!-- Botão para expandir o bloco de adicionar item -->
+            <button type="button" class="btn btn-outline-secondary btn-sm mb-3"
+                    data-bs-toggle="collapse" data-bs-target="#blocoAdicionarItem">
+                <i class="bi bi-plus-circle"></i> Adicionar item
+            </button>
+
+            <div class="collapse" id="blocoAdicionarItem">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="row g-4 mx-0">
+
+                        <div class="col-12">
+                            <label class="form-label">Item</label>
+                            <select name="produto" id="id_produto" class="form-control">
+                                <option value="">---------</option>
+                                {% for produto in form.produto.field.queryset %}
+                                <option value="{{ produto.pk }}">{{ produto.item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Tamanho</label>
+                            <select name="variacao" id="id_variacao" class="form-control">
+                                <option value="">---------</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Quantidade</label>
+                            <input type="number" name="quantidade" class="form-control"
+                                   min="1" placeholder="Ex: 2">
+                        </div>
+
+                    </div>
+
+                    <div class="mt-3 d-flex gap-2">
+                        <button type="submit" name="adicionar" class="btn-salvar">
+                            <i class="bi bi-cart-plus"></i> Adicionar ao carrinho
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+            {% if itens %}
+            <div class="mt-4">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Cód</th>
+                            <th>Item</th>
+                            <th>Tam.</th>
+                            <th>Qtd</th>
+                            <th>Valor</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in itens %}
+                        <tr>
+                            <td>{{ item.pk }}</td>
+                            <td>{{ item.variacao.produto.item }}</td>
+                            <td>{{ item.variacao.tamanho }}</td>
+                            <td>{{ item.quantidade }}</td>
+                            <td>R$ {{ item.valor_total }}</td>
+                            <td>
+                                <a href="#" class="action-icon icon-edit"
+                                   title="Editar item"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#modalEditarItem"
+                                   data-produto-id="{{ item.variacao.produto.pk }}"
+                                   data-variacao-id="{{ item.variacao.pk }}"
+                                   data-quantidade="{{ item.quantidade }}"
+                                   data-editar-url="{% url 'venda:editar_item' item.pk %}">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <a href="#" class="action-icon icon-delete" title="Remover"
+                                   onclick="removerItem('{% url 'venda:remover_item' item.pk %}'); return false;">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- Botão finalizar / voltar para a tela inicial de venda -->
+            <div class="mt-4 d-flex justify-content-end">
+                <a href="{% url 'venda:listar' %}" class="btn-salvar">
+                    <i class="bi bi-check2-circle"></i> Finalizar
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Formulário oculto usado para remover item mantendo o "next" -->
+<form id="form-remover-item" method="POST" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+</form>
+
+<!-- Modal de editar item -->
+<div class="modal fade" id="modalEditarItem" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" id="form-editar-item">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Editar item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tamanho</label>
+                        <select name="variacao" id="edit_variacao" class="form-control" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade</label>
+                        <input type="number" name="quantidade" id="edit_quantidade"
+                               class="form-control" min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-salvar">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // --- Adicionar item ---
+    const produtoSelect  = document.getElementById('id_produto');
+    const variacaoSelect = document.getElementById('id_variacao');
+
+    produtoSelect.addEventListener('change', function () {
+        const produtoId = this.value;
+        variacaoSelect.innerHTML = '<option value="">---------</option>';
+        if (!produtoId) return;
+        fetch(`{% url 'venda:variacoes_por_produto' %}?produto_id=${produtoId}`)
+            .then(res => res.json())
+            .then(data => {
+                data.variacoes.forEach(v => {
+                    const option       = document.createElement('option');
+                    option.value       = v.id;
+                    option.textContent = `${v.tamanho} (${v.quantidade} disp.)`;
+                    variacaoSelect.appendChild(option);
+                });
+            });
+    });
+
+    // --- Remover item, mantendo o usuário na página de edição ---
+    function removerItem(url) {
+        if (!confirm('Remover este item da venda?')) return;
+        const form = document.getElementById('form-remover-item');
+        form.action = url;
+        form.submit();
+    }
+
+    // --- Editar item (tamanho/quantidade) via modal ---
+    const modalEditarItem     = document.getElementById('modalEditarItem');
+    const editVariacaoSelect  = document.getElementById('edit_variacao');
+    const editQuantidadeInput = document.getElementById('edit_quantidade');
+    const formEditarItem      = document.getElementById('form-editar-item');
+
+    modalEditarItem.addEventListener('show.bs.modal', function (event) {
+        const trigger          = event.relatedTarget;
+        const editarUrl        = trigger.getAttribute('data-editar-url');
+        const produtoId        = trigger.getAttribute('data-produto-id');
+        const variacaoAtualId  = trigger.getAttribute('data-variacao-id');
+        const quantidadeAtual  = trigger.getAttribute('data-quantidade');
+
+        formEditarItem.action = editarUrl;
+        editQuantidadeInput.value = quantidadeAtual;
+        editVariacaoSelect.innerHTML = '<option value="">Carregando...</option>';
+
+        fetch(`{% url 'venda:variacoes_por_produto' %}?produto_id=${produtoId}&incluir_id=${variacaoAtualId}`)
+            .then(res => res.json())
+            .then(data => {
+                editVariacaoSelect.innerHTML = '';
+                data.variacoes.forEach(v => {
+                    const option       = document.createElement('option');
+                    option.value       = v.id;
+                    option.textContent = `${v.tamanho} (${v.quantidade} disp.)`;
+                    if (String(v.id) === variacaoAtualId) {
+                        option.selected = true;
+                    }
+                    editVariacaoSelect.appendChild(option);
+                });
+            });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <div class="cards-destaque">
+        <div class="card">
+            <div class="card-header">
+                <span>Vendas</span>
+                <i class="bi bi-cart"></i>
+            </div>
+            <h2>{{ total_vendas }}</h2>
+            <small class="positivo">{{ vendas_novas }} novas vendas nos últimos 15 dias</small>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span>Faturamento</span>
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <h2>R$ {{ faturamento|floatformat:2 }}</h2>
+            <small class="{% if faturamento_variacao >= 0 %}positivo{% else %}negativo{% endif %}">
+                {% if faturamento_variacao >= 0 %}+{% endif %}{{ faturamento_variacao }}% últimos 15 dias
+            </small>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span>Clientes</span>
+                <i class="bi bi-person"></i>
+            </div>
+            <h2>{{ total_clientes }}</h2>
+            <small class="positivo">{{ clientes_novos }} novos registros nos últimos 15 dias</small>
+        </div>
+    </div>
+
+    <div class="row-secundaria">
+        <div class="painel vendas-recentes">
+            <h3>Vendas Recentes</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cod</th>
+                        <th>Item</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venda in vendas_recentes %}
+                    <tr>
+                        <td>{{ venda.cod }}</td>
+                        <td>{{ venda.item }}</td>
+                        <td>R${{ venda.valor|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3">Nenhuma venda recente</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="painel fluxo-receita">
+            <h3>Fluxo da Receita</h3>
+            <canvas id="graficoReceita"></canvas>
+        </div>
+    </div>
+
+    <div class="painel mais-vendidos">
+        <h3>Mais Vendidos</h3>
+        {% for produto in mais_vendidos %}
+        <div class="item-vendido">
+            <span class="nome-produto">{{ produto.nome }}</span>
+            <div class="barra-fundo">
+                <div class="barra-preenchida" style="width: {{ produto.percentual }}%;"></div>
+            </div>
+        </div>
+        {% empty %}
+        <p>Nenhum produto vendido no período.</p>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .cards-destaque {
+        display: flex;
+        gap: 16px;
+    }
+
+    .card {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 16px 20px;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .card h2 {
+        font-size: 28px;
+        margin: 0 0 6px 0;
+        color: #111827;
+    }
+
+    .positivo { color: #16a34a; font-size: 13px; font-weight: 600; }
+    .negativo { color: #dc2626; font-size: 13px; font-weight: 600; }
+
+    .row-secundaria {
+        display: flex;
+        gap: 20px;
+    }
+
+    .painel {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        flex: 1;
+    }
+
+    .painel h3 {
+        font-size: 16px;
+        margin-bottom: 16px;
+        color: #111827;
+    }
+
+    .vendas-recentes table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .vendas-recentes th {
+        text-align: left;
+        color: #6b7280;
+        font-size: 13px;
+        padding-bottom: 8px;
+    }
+
+    .vendas-recentes td {
+        padding: 8px 0;
+        border-top: 1px solid #e5e7eb;
+        font-size: 14px;
+    }
+
+    .fluxo-receita canvas {
+        max-height: 220px;
+    }
+
+    .item-vendido {
+        margin-bottom: 14px;
+    }
+
+    .nome-produto {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 6px;
+        color: #111827;
+    }
+
+    .barra-fundo {
+        background: #e5e7eb;
+        border-radius: 6px;
+        height: 8px;
+        overflow: hidden;
+    }
+
+    .barra-preenchida {
+        background: #3b82f6;
+        height: 100%;
+        border-radius: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('graficoReceita');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ fluxo_labels|safe }},
+            datasets: [{
+                label: 'Receita (R$)',
+                data: {{ fluxo_receita|safe }},
+                backgroundColor: '#3b82f6',
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}

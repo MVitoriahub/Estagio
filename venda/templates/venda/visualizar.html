@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Visualizar Venda {{ venda.pk }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+
+    <div class="toolbar-box">
+        <a href="{% url 'venda:listar' %}" class="btn-novo">← Voltar</a>
+    </div>
+
+    <div class="section-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-semibold text-secondary">Venda {{ venda.pk }}</h5>
+    </div>
+
+    <div class="mb-4">
+        <p><strong>Cliente:</strong> {{ venda.cliente|default:"—" }}</p>
+        <p><strong>Pagamento:</strong> {{ venda.get_forma_pagamento_display }}</p>
+        <p><strong>Data:</strong> {{ venda.data_venda|date:"d/m/Y H:i" }}</p>
+        <p><strong>Total:</strong> R$ {{ venda.valor_total }}</p>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Variação</th>
+                    <th>Quantidade</th>
+                    <th>Valor Unitário</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in itens %}
+                <tr>
+                    <td>{{ item.variacao.produto.item }}</td>
+                    <td>{{ item.variacao.tamanho }}</td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>R$ {{ item.valor_unitario }}</td>
+                    <td>R$ {{ item.valor_total }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        Nenhum item nessa venda.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

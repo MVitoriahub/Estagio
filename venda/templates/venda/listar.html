@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gerenciar Vendas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-panel">
+
+    <div class="toolbar-box">
+        <a href="{% url 'venda:nova' %}" class="btn-novo">+ Nova Venda</a>
+    </div>
+
+    <div class="section-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-semibold text-secondary">Gerenciar Venda</h5>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 30px;"></th>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Pagamento</th>
+                    <th>Total</th>
+                    <th>Data</th>
+                    <th style="width: 150px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venda in vendas %}
+                <tr class="venda-row" data-bs-toggle="collapse" data-bs-target="#itens-{{ venda.pk }}"
+                    style="cursor: pointer;">
+                    <td>
+                        <i class="bi bi-chevron-right toggle-icon"></i>
+                    </td>
+                    <td>{{ venda.pk }}</td>
+                    <td>{{ venda.cliente|default:"—" }}</td>
+                    <td>{{ venda.get_forma_pagamento_display }}</td>
+                    <td>R$ {{ venda.valor_total }}</td>
+                    <td>{{ venda.data_venda|date:"d/m/Y H:i" }}</td>
+                    <td onclick="event.stopPropagation();">
+                        <a href="{% url 'venda:visualizar' venda.pk %}" class="action-icon icon-view"
+                           title="Visualizar">
+                            <i class="bi bi-eye-fill"></i>
+                        </a>
+                        <a href="{% url 'venda:editar' venda.pk %}" class="action-icon icon-edit"
+                           title="Editar">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <a href="#" class="action-icon icon-delete"
+                           title="Cancelar venda"
+                           data-bs-toggle="modal"
+                           data-bs-target="#modalCancelarVenda"
+                           data-venda-id="{{ venda.pk }}"
+                           data-venda-url="{% url 'venda:excluir' venda.pk %}">
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                    </td>
+                </tr>
+                <tr class="collapse" id="itens-{{ venda.pk }}">
+                    <td colspan="7" class="p-0 border-0">
+                        <div class="itens-expandidos px-4 py-3">
+                            {% with itens=venda.itens.all %}
+                            {% if itens %}
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Tamanho</th>
+                                        <th>Qtd</th>
+                                        <th>Valor Unit.</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in itens %}
+                                    <tr>
+                                        <td>{{ item.variacao.produto.item }}</td>
+                                        <td>{{ item.variacao.tamanho }}</td>
+                                        <td>{{ item.quantidade }}</td>
+                                        <td>R$ {{ item.valor_unitario }}</td>
+                                        <td>R$ {{ item.valor_total }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p class="text-muted mb-0">Nenhum item nessa venda.</p>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Nenhuma venda registrada.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Modal de confirmação de cancelamento -->
+<div class="modal fade" id="modalCancelarVenda" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content confirm-modal">
+            <div class="modal-body text-center py-4">
+                <div class="confirm-icon mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <h5 class="mb-2">Cancelar venda?</h5>
+                <p class="text-muted mb-0">
+                    Tem certeza que deseja cancelar a <strong>Venda #<span id="modalVendaId"></span></strong>?
+                    <br>Essa ação não pode ser desfeita.
+                </p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pb-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Voltar</button>
+                <a href="#" id="btnConfirmarCancelamento" class="btn btn-danger px-4">Sim, cancelar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const modalCancelarVenda = document.getElementById('modalCancelarVenda');
+    modalCancelarVenda.addEventListener('show.bs.modal', function (event) {
+        const trigger = event.relatedTarget;
+        const vendaId  = trigger.getAttribute('data-venda-id');
+        const vendaUrl = trigger.getAttribute('data-venda-url');
+
+        document.getElementById('modalVendaId').textContent = vendaId;
+        document.getElementById('btnConfirmarCancelamento').setAttribute('href', vendaUrl);
+    });
+
+    // Gira a setinha quando a linha expande/recolhe
+    document.querySelectorAll('.venda-row').forEach(function (row) {
+        const targetId = row.getAttribute('data-bs-target');
+        const target   = document.querySelector(targetId);
+        const icon     = row.querySelector('.toggle-icon');
+
+        target.addEventListener('show.bs.collapse', function () {
+            icon.classList.remove('bi-chevron-right');
+            icon.classList.add('bi-chevron-down');
+        });
+        target.addEventListener('hide.bs.collapse', function () {
+            icon.classList.remove('bi-chevron-down');
+            icon.classList.add('bi-chevron-right');
+        });
+    });
+</script>
+{% endblock %}
