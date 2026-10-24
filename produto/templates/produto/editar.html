@@ -60,8 +60,9 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Lucro (%)</label>
-                        <input type="number" name="lucro" class="form-control"
-                               value="{{ produto.lucro|floatformat:2 }}" step="0.01" required>
+                        <input type="text" name="lucro" class="form-control"
+                               value="{{ produto.lucro|floatformat:2 }}" inputmode="decimal"
+                               placeholder="Ex: 30,00" required>
                     </div>
 
                 </div>

@@ -4,6 +4,18 @@
 {% block content %}
 <div class="dashboard-container">
 
+    <div class="dashboard-header">
+        <h2 class="dashboard-titulo">Visão Geral</h2>
+        <form method="get" class="seletor-periodo">
+            <label for="periodo">Período:</label>
+            <select name="periodo" id="periodo" onchange="this.form.submit()">
+                <option value="15" {% if periodo == "15" %}selected{% endif %}>Últimos 15 dias</option>
+                <option value="30" {% if periodo == "30" %}selected{% endif %}>Últimos 30 dias</option>
+                <option value="90" {% if periodo == "90" %}selected{% endif %}>Últimos 90 dias</option>
+            </select>
+        </form>
+    </div>
+
     <div class="cards-destaque">
         <div class="card">
             <div class="card-header">
@@ -11,7 +23,10 @@
                 <i class="bi bi-cart"></i>
             </div>
             <h2>{{ total_vendas }}</h2>
-            <small class="positivo">{{ vendas_novas }} novas vendas nos últimos 15 dias</small>
+            <small class="{% if vendas_variacao >= 0 %}positivo{% else %}negativo{% endif %}">
+                {% if vendas_variacao >= 0 %}<i class="bi bi-arrow-up-short"></i>{% else %}<i class="bi bi-arrow-down-short"></i>{% endif %}
+                {{ vendas_novas }} novas vendas nos últimos {{ periodo }} dias
+            </small>
         </div>
 
         <div class="card">
@@ -21,7 +36,18 @@
             </div>
             <h2>R$ {{ faturamento|floatformat:2 }}</h2>
             <small class="{% if faturamento_variacao >= 0 %}positivo{% else %}negativo{% endif %}">
-                {% if faturamento_variacao >= 0 %}+{% endif %}{{ faturamento_variacao }}% últimos 15 dias
+                {% if faturamento_variacao >= 0 %}<i class="bi bi-arrow-up-short"></i>+{% else %}<i class="bi bi-arrow-down-short"></i>{% endif %}{{ faturamento_variacao }}% últimos {{ periodo }} dias
+            </small>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span>Lucro</span>
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <h2>R$ {{ lucro|floatformat:2 }}</h2>
+            <small class="{% if lucro_variacao >= 0 %}positivo{% else %}negativo{% endif %}">
+                {% if lucro_variacao >= 0 %}<i class="bi bi-arrow-up-short"></i>+{% else %}<i class="bi bi-arrow-down-short"></i>{% endif %}{{ lucro_variacao }}% últimos {{ periodo }} dias
             </small>
         </div>
 
@@ -31,7 +57,10 @@
                 <i class="bi bi-person"></i>
             </div>
             <h2>{{ total_clientes }}</h2>
-            <small class="positivo">{{ clientes_novos }} novos registros nos últimos 15 dias</small>
+            <small class="{% if clientes_novos > 0 %}positivo{% else %}neutro{% endif %}">
+                {% if clientes_novos > 0 %}<i class="bi bi-arrow-up-short"></i>{% endif %}
+                {{ clientes_novos }} novos registros nos últimos {{ periodo }} dias
+            </small>
         </div>
     </div>
 
@@ -62,7 +91,9 @@
 
         <div class="painel fluxo-receita">
             <h3>Fluxo da Receita</h3>
-            <canvas id="graficoReceita"></canvas>
+            <div class="scroll-grafico">
+                <canvas id="graficoReceita" width="900" height="220"></canvas>
+            </div>
         </div>
     </div>
 
@@ -70,9 +101,15 @@
         <h3>Mais Vendidos</h3>
         {% for produto in mais_vendidos %}
         <div class="item-vendido">
-            <span class="nome-produto">{{ produto.nome }}</span>
-            <div class="barra-fundo">
-                <div class="barra-preenchida" style="width: {{ produto.percentual }}%;"></div>
+            <div class="posicao">{{ forloop.counter }}</div>
+            <div class="item-vendido-corpo">
+                <div class="item-vendido-header">
+                    <span class="nome-produto">{{ produto.nome }}</span>
+                    <span class="qtd-produto">{{ produto.qtd }} un.</span>
+                </div>
+                <div class="barra-fundo">
+                    <div class="barra-preenchida" style="width: {{ produto.percentual }}%; background: {{ produto.cor }};"></div>
+                </div>
             </div>
         </div>
         {% empty %}
@@ -91,8 +128,59 @@
         gap: 20px;
     }
 
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        border-radius: 10px;
+        padding: 16px 20px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .dashboard-titulo {
+        font-size: 20px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+    }
+
+    .seletor-periodo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .seletor-periodo label {
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .seletor-periodo select {
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        font-size: 14px;
+        color: #111827;
+        cursor: pointer;
+        transition: border-color 0.15s ease;
+    }
+
+    .seletor-periodo select:hover {
+        border-color: #3b82f6;
+    }
+
+    .seletor-periodo select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
     .cards-destaque {
         display: flex;
+        flex-wrap: wrap;
         gap: 16px;
     }
 
@@ -101,7 +189,7 @@
         border-radius: 10px;
         padding: 16px 20px;
         flex: 1;
-        min-width: 150px;
+        min-width: 180px;
     }
 
     .card-header {
@@ -121,6 +209,7 @@
 
     .positivo { color: #16a34a; font-size: 13px; font-weight: 600; }
     .negativo { color: #dc2626; font-size: 13px; font-weight: 600; }
+    .neutro   { color: #6b7280; font-size: 13px; font-weight: 600; }
 
     .row-secundaria {
         display: flex;
@@ -132,6 +221,7 @@
         border-radius: 10px;
         padding: 20px;
         flex: 1;
+        min-width: 0;
     }
 
     .painel h3 {
@@ -158,32 +248,71 @@
         font-size: 14px;
     }
 
-    .fluxo-receita canvas {
-        max-height: 220px;
+    .scroll-grafico {
+        overflow-x: auto;
+        overflow-y: hidden;
+        width: 100%;
+    }
+
+    .scroll-grafico canvas {
+        display: block;
     }
 
     .item-vendido {
-        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    .posicao {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .item-vendido-corpo {
+        flex: 1;
+    }
+
+    .item-vendido-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 6px;
     }
 
     .nome-produto {
-        display: block;
         font-size: 14px;
-        margin-bottom: 6px;
         color: #111827;
+        font-weight: 500;
+    }
+
+    .qtd-produto {
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 600;
     }
 
     .barra-fundo {
         background: #e5e7eb;
         border-radius: 6px;
-        height: 8px;
+        height: 10px;
         overflow: hidden;
     }
 
     .barra-preenchida {
-        background: #3b82f6;
         height: 100%;
         border-radius: 6px;
+        transition: width 0.3s ease;
     }
 </style>
 {% endblock %}
@@ -204,11 +333,13 @@
             }]
         },
         options: {
+            responsive: false,
+            maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true }
-            }
+            scales: { y: { beginAtZero: true } }
         }
     });
+
+    document.querySelector('.scroll-grafico').scrollLeft = 99999;
 </script>
 {% endblock %}

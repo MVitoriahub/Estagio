@@ -5,6 +5,41 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+<style>
+    .dialogo-excluir {
+        border: 0;
+        border-radius: 8px;
+        padding: 0;
+        max-width: 440px;
+        width: calc(100% - 32px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, .3);
+    }
+    .dialogo-excluir::backdrop { background: rgba(0, 0, 0, .5); }
+
+    .dialogo-excluir .dialogo-titulo {
+        margin: 0;
+        padding: 18px 24px;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #991b1b;
+        background: #fef2f2;
+        border-bottom: 1px solid #fecaca;
+    }
+    .dialogo-excluir .dialogo-corpo {
+        padding: 20px 24px;
+        color: #374151;
+        line-height: 1.5;
+    }
+    .dialogo-excluir .dialogo-corpo p { margin: 0 0 8px 0; }
+    .dialogo-excluir .dialogo-acoes {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        padding: 0 24px 22px 24px;
+    }
+    .dialogo-excluir button { cursor: pointer; border: 0; }
+    .dialogo-excluir button:disabled { opacity: .6; cursor: not-allowed; }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -23,24 +58,77 @@
         <div class="cliente-info">
             <p><strong>ID:</strong> {{ cliente.id }}</p>
             <p><strong>Nome:</strong> {{ cliente.nome }}</p>
-            <p><strong>CPF:</strong> {{ cliente.cpf }}</p>
-            <p><strong>Contato:</strong> {{ cliente.contato }}</p>
+            <p><strong>CPF:</strong> {{ cliente.cpf_formatado }}</p>
+            <p><strong>Contato:</strong> <span id="contato-formatado">{{ cliente.contato }}</span></p>
             <p><strong>Rua:</strong> {{ cliente.rua }}</p>
             <p><strong>Número:</strong> {{ cliente.numero }}</p>
             <p><strong>Bairro:</strong> {{ cliente.bairro }}</p>
             <p><strong>Cidade:</strong> {{ cliente.cidade }}</p>
         </div>
 
-        <form method="POST">
+        <form method="POST" id="form-excluir">
             {% csrf_token %}
 
             <div class="d-flex gap-2 justify-content-center">
-                <button type="submit" class="btn-excluir">Excluir</button>
-                <a href="{% url 'clientes:listar_clientes' %}" class="btn-cancelar">Cancelar</a>
+                <button type="button" class="btn-excluir" id="abrir-confirmacao">Excluir</button>
+                <a href="{% url 'clientes:listar_clientes' %}" class="btn-cancelar" id="cancelar-principal">Cancelar</a>
             </div>
+
+            <!-- Segunda confirmação -->
+            <dialog class="dialogo-excluir" id="dialogo-confirmacao" aria-labelledby="dialogo-titulo">
+                <h5 class="dialogo-titulo" id="dialogo-titulo">Confirmar exclusão</h5>
+                <div class="dialogo-corpo">
+                    <p>Você realmente deseja excluir o cliente <strong>{{ cliente.nome }}</strong>?</p>
+                    <p>Ele deixará de aparecer na lista de clientes.</p>
+                </div>
+                <div class="dialogo-acoes">
+                    <button type="submit" class="btn-excluir" id="confirmar-exclusao">Sim, excluir</button>
+                    <button type="button" class="btn-cancelar" id="fechar-confirmacao" autofocus>Não, voltar</button>
+                </div>
+            </dialog>
         </form>
     </div>
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    var dialogo   = document.getElementById('dialogo-confirmacao');
+    var abrir     = document.getElementById('abrir-confirmacao');
+    var fechar    = document.getElementById('fechar-confirmacao');
+    var confirmar = document.getElementById('confirmar-exclusao');
+    var form      = document.getElementById('form-excluir');
+
+    abrir.addEventListener('click', function () { dialogo.showModal(); });
+    fechar.addEventListener('click', function () { dialogo.close(); });
+
+    // Clique fora da caixa também fecha (sem excluir)
+    dialogo.addEventListener('click', function (e) {
+        if (e.target === dialogo) dialogo.close();
+    });
+
+    // Evita enviar duas vezes com clique duplo
+    form.addEventListener('submit', function () {
+        confirmar.disabled = true;
+        confirmar.textContent = 'Excluindo...';
+    });
+
+    // Contato formatado: 3232-1658, (43) 9999-9999 ou (43) 99999-9999
+    var alvo = document.getElementById('contato-formatado');
+    if (alvo) {
+        var d = alvo.textContent.replace(/\D/g, '');
+        var f = null;
+        if (d.length === 8)  f = d.slice(0, 4) + '-' + d.slice(4);
+        if (d.length === 9)  f = d.slice(0, 5) + '-' + d.slice(5);
+        if (d.length === 10) f = '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+        if (d.length === 11) f = '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+        if (f) alvo.textContent = f;
+    }
+})();
+</script>
 {% endblock %}

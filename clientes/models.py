@@ -33,6 +33,26 @@ class Cliente(models.Model):
     def __str__(self):
         return self.nome
 
+    @property
+    def _cpf_digitos(self):
+        return ''.join(c for c in (self.cpf or '') if c.isdigit())
+
+    @property
+    def cpf_formatado(self):
+        """193.299.238-27 (para telas de detalhe)."""
+        d = self._cpf_digitos
+        if len(d) != 11:
+            return self.cpf
+        return f'{d[:3]}.{d[3:6]}.{d[6:9]}-{d[9:]}'
+
+    @property
+    def cpf_mascarado(self):
+        """***.299.238-** (para listagens)."""
+        d = self._cpf_digitos
+        if len(d) != 11:
+            return '***.***.***-**'
+        return f'***.{d[3:6]}.{d[6:9]}-**'
+
     def delete(self, using=None, keep_parents=False):
         self.deletado    = True
         self.deletado_em = timezone.now()

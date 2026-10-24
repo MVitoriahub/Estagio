@@ -5,11 +5,189 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+<style>
+    /* ===== Estilos da listagem de clientes (classes lc-*) ===== */
+
+    /* Busca no topo */
+    .lc-pagina .search-box { min-width: 300px; }
+    .lc-pagina .search-box input { flex: 1; min-width: 0; width: 100%; }
+
+    /* Filtros em linha */
+    .lc-pagina .lc-filtros {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px 16px;
+        margin: 16px 0 8px;
+    }
+    .lc-pagina .lc-campo {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1 1 160px;
+        min-width: 150px;
+        max-width: 240px;
+    }
+    .lc-pagina .lc-campo label {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+    }
+    .lc-pagina .lc-filtros .lc-campo .form-select,
+    .lc-pagina .lc-filtros .lc-campo .form-control {
+        height: 38px;
+        padding: 4px 10px;
+        font-size: 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: none;
+    }
+    .lc-pagina .lc-filtros .lc-campo .form-select:focus,
+    .lc-pagina .lc-filtros .lc-campo .form-control:focus {
+        border-color: #7c3aed;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, .15);
+        outline: 0;
+    }
+
+    /* "Ordenar por" só no celular */
+    .lc-pagina .lc-so-mobile { display: none; }
+
+    /* Contador + limpar filtros */
+    .lc-pagina .lc-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 8px 0 12px;
+    }
+    .lc-pagina .lc-contador { font-size: 14px; color: #6b7280; }
+    .lc-pagina .lc-limpar {
+        font-size: 14px;
+        font-weight: 600;
+        color: #7c3aed;
+        text-decoration: none;
+    }
+    .lc-pagina .lc-limpar:hover { text-decoration: underline; }
+
+    /* Cabeçalho da tabela com ordenação */
+    .lc-pagina .lc-tabela th { font-size: 13px; white-space: nowrap; }
+    .lc-pagina .lc-ordenar {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        color: #374151;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .lc-pagina .lc-ordenar:hover { color: #7c3aed; }
+    .lc-pagina .lc-ordenar i { font-size: 11px; color: #9ca3af; }
+    .lc-pagina th[aria-sort="ascending"] .lc-ordenar,
+    .lc-pagina th[aria-sort="descending"] .lc-ordenar { color: #7c3aed; }
+    .lc-pagina th[aria-sort="ascending"] .lc-ordenar i,
+    .lc-pagina th[aria-sort="descending"] .lc-ordenar i { color: #7c3aed; }
+
+    .lc-pagina .lc-acoes { white-space: nowrap; }
+    .lc-pagina .lc-acoes .action-icon { margin-right: 6px; }
+
+    /* Rodapé: itens por página + paginação */
+    .lc-pagina .lc-pager {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    .lc-pagina .lc-por-pagina {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 14px;
+        color: #6b7280;
+    }
+    .lc-pagina .lc-por-pagina .form-select {
+        width: auto;
+        height: 34px;
+        padding: 2px 28px 2px 10px;
+        font-size: 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+    }
+    .lc-pagina .pagination .page-link { color: #7c3aed; }
+    .lc-pagina .pagination .page-item.active .page-link {
+        background: #7c3aed;
+        border-color: #7c3aed;
+        color: #fff;
+    }
+
+    /* Estado vazio */
+    .lc-pagina .lc-vazio {
+        text-align: center;
+        padding: 48px 16px;
+        color: #6b7280;
+    }
+    .lc-pagina .lc-vazio i {
+        display: block;
+        margin-bottom: 12px;
+        font-size: 40px;
+        color: #c4b5fd;
+    }
+    .lc-pagina .lc-vazio h6 { color: #374151; font-weight: 600; }
+    .lc-pagina .lc-vazio p { margin-bottom: 16px; }
+
+    /* Carregando (busca sem recarregar a página) */
+    #area-lista { transition: opacity .15s; }
+    #area-lista.carregando { opacity: .5; pointer-events: none; }
+
+    /* Celular: tabela vira cards */
+    @media (max-width: 768px) {
+        .lc-pagina .search-box { min-width: 0; width: 100%; }
+        .lc-pagina .lc-campo { max-width: none; flex: 1 1 100%; }
+        .lc-pagina .lc-so-mobile { display: flex; }
+
+        .lc-pagina .lc-tabela thead { display: none; }
+        .lc-pagina .lc-tabela table,
+        .lc-pagina .lc-tabela tbody,
+        .lc-pagina .lc-tabela tr,
+        .lc-pagina .lc-tabela td { display: block; width: 100%; }
+        .lc-pagina .lc-tabela tr {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .lc-pagina .lc-tabela td {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 6px 0;
+            border: 0;
+            text-align: right;
+            background: transparent;
+        }
+        .lc-pagina .lc-tabela td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #6b7280;
+            text-align: left;
+        }
+        .lc-pagina .lc-tabela td.lc-acoes { justify-content: flex-end; }
+        .lc-pagina .lc-tabela td.lc-acoes::before { content: none; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 
-<div class="content-panel">
+<div class="content-panel lc-pagina">
 
     <div class="toolbar-box">
         <a href="{% url 'clientes:criar_cliente' %}" class="btn-novo">
@@ -17,59 +195,315 @@
         </a>
     </div>
 
-    <div class="section-header d-flex justify-content-between align-items-center">
+    <div class="section-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h5 class="mb-0 fw-semibold text-secondary">Gerenciar Clientes</h5>
 
-        <form method="get" class="d-flex align-items-center">
-            <div class="search-box">
-                <i class="bi bi-search me-2 text-secondary"></i>
-                <input type="text" name="q" value="{{ busca }}">
-            </div>
-        </form>
+        {# O campo pertence ao formulário #filtros (atributo form=) para ficar fora dele no layout #}
+        <div class="search-box" role="search">
+            <i class="bi bi-search me-2 text-secondary" aria-hidden="true"></i>
+            <label for="q" class="visually-hidden">Buscar clientes por nome, CPF ou contato</label>
+            <input type="search" id="q" name="q" form="filtros" value="{{ busca }}"
+                   placeholder="Buscar por nome, CPF ou contato" autocomplete="off">
+        </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>CPF</th>
-                    <th>Contato</th>
-                    <th style="width: 140px;">Ações</th>
-                </tr>
-            </thead>
+    {# ===================== FILTROS ===================== #}
+    <form id="filtros" method="get" action="{% url 'clientes:listar_clientes' %}" class="lc-filtros" novalidate>
+        <input type="hidden" name="ordem" value="{{ ordem }}" data-padrao="nome">
+        <input type="hidden" name="dir" value="{{ direcao }}" data-padrao="asc">
 
-            <tbody>
-                {% for cliente in clientes %}
-                <tr>
-                    <td>{{ cliente.id }}</td>
-                    <td>{{ cliente.nome }}</td>
-                    <td>{{ cliente.cpf }}</td>
-                    <td>{{ cliente.contato }}</td>
-                    <td>
-                        <a href="{% url 'clientes:visualizar_cliente' cliente.id %}" class="action-icon icon-view">
-                            <i class="bi bi-eye-fill"></i>
-                        </a>
-                        <a href="{% url 'clientes:editar_cliente' cliente.id %}" class="action-icon icon-edit">
-                            <i class="bi bi-pencil-fill"></i>
-                        </a>
-                        <a href="{% url 'clientes:excluir_cliente' cliente.id %}" class="action-icon icon-delete">
-                            <i class="bi bi-trash-fill"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
-                        Nenhum cliente cadastrado.
-                    </td>
-                </tr>
+        {# Só aparece no celular, onde o cabeçalho da tabela vira cards #}
+        <div class="lc-campo lc-so-mobile">
+            <label for="ordenacao-mobile">Ordenar por</label>
+            <select id="ordenacao-mobile" class="form-select">
+                {% for o in opcoes_ordem %}
+                <option value="{{ o.valor }}" {% if o.selecionado %}selected{% endif %}>{{ o.rotulo }}</option>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            </select>
+        </div>
+
+        <noscript><button type="submit" class="btn btn-sm btn-primary">Filtrar</button></noscript>
+    </form>
+
+    {# ===================== ÁREA ATUALIZADA SEM RECARREGAR A PÁGINA ===================== #}
+    <div id="area-lista" aria-busy="false">
+
+        <div class="lc-meta">
+            <p class="lc-contador mb-0" id="contador">
+                {% if total %}
+                    Mostrando {{ inicio }}–{{ fim }} de {{ total }} cliente{{ total|pluralize }}{% if total != total_geral %} (filtrado de {{ total_geral }}){% endif %}
+                {% else %}
+                    Nenhum cliente encontrado
+                {% endif %}
+            </p>
+            {% if tem_filtros %}
+            <a href="{{ url_limpar }}" class="lc-limpar" data-ajax data-foco="busca">Limpar busca e filtros</a>
+            {% endif %}
+        </div>
+
+        {% if total %}
+        <div class="table-responsive lc-tabela">
+            <table class="table table-striped table-hover align-middle">
+                <caption class="visually-hidden">Lista de clientes. Use os links do cabeçalho para ordenar.</caption>
+                <thead>
+                    <tr>
+                        {% for col in colunas %}
+                        <th scope="col" aria-sort="{{ col.aria }}">
+                            <a href="{{ col.url }}" class="lc-ordenar" data-ajax data-foco="sort-{{ col.chave }}" title="{{ col.dica }}">
+                                {{ col.rotulo }}<i class="bi {{ col.icone }}" aria-hidden="true"></i>
+                            </a>
+                        </th>
+                        {% endfor %}
+                        <th scope="col" style="width: 140px;">Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td data-label="ID">{{ cliente.id }}</td>
+                        <td data-label="Nome">{{ cliente.nome }}</td>
+                        <td data-label="CPF">{{ cliente.cpf_mascarado }}</td>
+                        <td data-label="Contato">{{ cliente.contato }}</td>
+                        <td data-label="Cidade">{{ cliente.cidade }}</td>
+                        <td data-label="Cadastro">{{ cliente.criado_em|date:"d/m/Y" }}</td>
+                        <td class="lc-acoes">
+                            <a href="{% url 'clientes:visualizar_cliente' cliente.id %}" class="action-icon icon-view"
+                               aria-label="Visualizar {{ cliente.nome }}" title="Visualizar">
+                                <i class="bi bi-eye-fill" aria-hidden="true"></i>
+                            </a>
+                            <a href="{% url 'clientes:editar_cliente' cliente.id %}" class="action-icon icon-edit"
+                               aria-label="Editar {{ cliente.nome }}" title="Editar">
+                                <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+                            </a>
+                            <a href="{% url 'clientes:excluir_cliente' cliente.id %}" class="action-icon icon-delete"
+                               aria-label="Excluir {{ cliente.nome }}" title="Excluir">
+                                <i class="bi bi-trash-fill" aria-hidden="true"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="lc-pager">
+            <label class="lc-por-pagina">
+                Itens por página
+                <select name="por_pagina" form="filtros" class="form-select form-select-sm" data-padrao="10">
+                    {% for t in tamanhos %}
+                    <option value="{{ t }}" {% if t == por_pagina %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            {% if page_obj.paginator.num_pages > 1 %}
+            <nav aria-label="Paginação de clientes">
+                <ul class="pagination mb-0">
+                    <li class="page-item {% if not anterior_url %}disabled{% endif %}">
+                        {% if anterior_url %}
+                        <a class="page-link" href="{{ anterior_url }}" data-ajax data-foco="pag-anterior" aria-label="Página anterior">&lsaquo;</a>
+                        {% else %}
+                        <span class="page-link" aria-hidden="true">&lsaquo;</span>
+                        {% endif %}
+                    </li>
+
+                    {% for p in paginas %}
+                        {% if p.reticencias %}
+                        <li class="page-item disabled"><span class="page-link" aria-hidden="true">&hellip;</span></li>
+                        {% else %}
+                        <li class="page-item {% if p.atual %}active{% endif %}">
+                            <a class="page-link" href="{{ p.url }}" data-ajax data-foco="pag-{{ p.num }}"
+                               aria-label="Página {{ p.num }}" {% if p.atual %}aria-current="page"{% endif %}>{{ p.num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <li class="page-item {% if not proxima_url %}disabled{% endif %}">
+                        {% if proxima_url %}
+                        <a class="page-link" href="{{ proxima_url }}" data-ajax data-foco="pag-proxima" aria-label="Próxima página">&rsaquo;</a>
+                        {% else %}
+                        <span class="page-link" aria-hidden="true">&rsaquo;</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        {% else %}
+        {# ===================== ESTADO VAZIO ===================== #}
+        <div class="lc-vazio">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            {% if tem_filtros %}
+                <h6>Nenhum cliente encontrado</h6>
+                <p>Não há resultados para a busca ou os filtros aplicados.</p>
+                <a href="{{ url_limpar }}" class="btn-novo" data-ajax data-foco="busca">Limpar busca e filtros</a>
+            {% else %}
+                <h6>Nenhum cliente cadastrado</h6>
+                <p>Cadastre o primeiro cliente para começar.</p>
+                <a href="{% url 'clientes:criar_cliente' %}" class="btn-novo">+ Novo Cliente</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>{# /#area-lista #}
+
+    {# Anuncia o contador para leitores de tela quando a lista é atualizada #}
+    <div id="anuncio" class="visually-hidden" role="status" aria-live="polite"></div>
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* =====================================================================
+   clientes_lista.js — atualiza a listagem sem recarregar a página.
+
+   - Busca com debounce de 300 ms
+   - Filtros, ordenação por coluna, paginação e "itens por página"
+   - Mostra skeleton enquanto carrega
+   - Mantém a URL (botão voltar/avançar e links compartilháveis funcionam)
+   - Sem JavaScript, tudo continua funcionando como links/formulário GET comuns
+   ===================================================================== */
+(() => {
+    'use strict';
+
+    const form    = document.getElementById('filtros');
+    const area    = document.getElementById('area-lista');
+    const anuncio = document.getElementById('anuncio');
+    const busca   = document.getElementById('q');
+    if (!form || !area || !window.fetch) return;
+
+    const ATRASO_BUSCA = 300; // ms
+    let timerBusca = null;
+    let controlador = null;
+
+    /* ---------- URL a partir do formulário ---------- */
+    function urlDoFormulario() {
+        const params = new URLSearchParams();
+        new FormData(form).forEach((valor, nome) => {
+            const v = String(valor).trim();
+            if (v !== '') params.append(nome, v);
+        });
+        const qs = params.toString();
+        return (form.getAttribute('action') || location.pathname) + (qs ? '?' + qs : '');
+    }
+
+    /* ---------- formulário a partir da URL (links, voltar/avançar) ---------- */
+    function sincronizar(url) {
+        const p = new URL(url, location.href).searchParams;
+        Array.from(form.elements).forEach((el) => {
+            if (!el.name || el.type === 'submit') return;
+            el.value = p.has(el.name) ? p.get(el.name) : (el.dataset.padrao || '');
+        });
+        const ord = document.getElementById('ordenacao-mobile');
+        if (ord) ord.value = (p.get('ordem') || 'nome') + ':' + (p.get('dir') || 'asc');
+    }
+
+    function anunciar() {
+        const contador = document.getElementById('contador');
+        if (anuncio && contador) {
+            anuncio.textContent = contador.textContent.replace(/\s+/g, ' ').trim();
+        }
+    }
+
+    function restaurarFoco(foco) {
+        if (!foco) return;
+        const alvo = foco === 'busca' ? busca : area.querySelector('[data-foco="' + foco + '"]');
+        if (alvo) alvo.focus();
+    }
+
+    /* ---------- carrega a lista ---------- */
+    async function carregar(url, { empurrar = true, sincronizarCampos = false, foco = null } = {}) {
+        if (controlador) controlador.abort();           // descarta resposta antiga
+        const meu = new AbortController();
+        controlador = meu;
+
+        area.classList.add('carregando');               // skeleton
+        area.setAttribute('aria-busy', 'true');
+
+        try {
+            const resp = await fetch(url, {
+                signal: meu.signal,
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+            const doc  = new DOMParser().parseFromString(await resp.text(), 'text/html');
+            const nova = doc.getElementById('area-lista');
+            if (!nova) throw new Error('Resposta inesperada'); // ex.: redirecionou para o login
+
+            area.innerHTML = nova.innerHTML;
+            if (doc.title) document.title = doc.title;
+
+            if (empurrar) {
+                const destino = new URL(url, location.href);
+                const mesma = destino.pathname + destino.search === location.pathname + location.search;
+                history[mesma ? 'replaceState' : 'pushState']({}, '', url);
+            }
+            if (sincronizarCampos) sincronizar(url);
+            anunciar();
+            restaurarFoco(foco);
+        } catch (erro) {
+            if (erro.name === 'AbortError') return;     // havia uma busca mais nova
+            window.location.assign(url);                // fallback: navegação normal
+        } finally {
+            if (controlador === meu) {
+                controlador = null;
+                area.classList.remove('carregando');
+                area.setAttribute('aria-busy', 'false');
+            }
+        }
+    }
+
+    /* ---------- eventos ---------- */
+
+    // Enter no campo de busca
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clearTimeout(timerBusca);
+        carregar(urlDoFormulario());
+    });
+
+    // Digitação: espera 300 ms de pausa antes de buscar
+    if (busca) {
+        busca.addEventListener('input', () => {
+            clearTimeout(timerBusca);
+            timerBusca = setTimeout(() => carregar(urlDoFormulario()), ATRASO_BUSCA);
+        });
+    }
+
+    // Selects e datas (inclui "itens por página", que fica dentro da área atualizada)
+    document.addEventListener('change', (e) => {
+        const el = e.target;
+        if (el.id === 'ordenacao-mobile') {
+            const [ordem, dir] = el.value.split(':');
+            form.elements['ordem'].value = ordem;
+            form.elements['dir'].value = dir;
+        } else if (el.form !== form || el.id === 'q') {
+            return;
+        }
+        clearTimeout(timerBusca);
+        carregar(urlDoFormulario());
+    });
+
+    // Links de ordenação, paginação e "limpar filtros"
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[data-ajax]');
+        if (!link || !area.contains(link)) return;
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        clearTimeout(timerBusca);
+        carregar(link.href, { sincronizarCampos: true, foco: link.dataset.foco || null });
+    });
+
+    // Botão voltar/avançar do navegador
+    window.addEventListener('popstate', () => {
+        carregar(location.href, { empurrar: false, sincronizarCampos: true });
+    });
+})();
+</script>
 {% endblock %}

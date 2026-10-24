@@ -5,6 +5,113 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+<style>
+    /* Campos de leitura: rótulo pequeno + valor, sem aparência de input */
+    .content-panel .info-group {
+        margin: 0;
+    }
+
+    .content-panel .info-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #6b7280;
+        margin-bottom: 2px;
+    }
+
+    .content-panel .info-value {
+        background: transparent;
+        border: 0;
+        border-bottom: 1px solid #e5e7eb;
+        box-shadow: none;
+        border-radius: 0;
+        height: auto;
+        min-height: 0;
+        padding: 2px 0 8px 0;
+        font-size: 16px;
+        color: #111827;
+    }
+
+    /* Cabeçalho da seção Variações com estoque total à direita */
+    .titulo-variacoes {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .estoque-total {
+        font-size: 14px;
+        color: #374151;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        padding: 4px 14px;
+    }
+
+    .estoque-total strong {
+        color: #111827;
+    }
+
+    /* Tabela de variações */
+    .tabela-variacoes {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 0;
+    }
+
+    .tabela-variacoes thead th {
+        background: #f9fafb;
+        font-size: 13px;
+        color: #6b7280;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .tabela-variacoes tbody td {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #374151;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .tabela-variacoes tbody tr:first-child td {
+        border-top: 0;
+    }
+
+    .tabela-variacoes tbody tr:hover td {
+        background: #faf5ff;
+    }
+
+    .badge-estoque {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 999px;
+        margin-left: 8px;
+    }
+
+    .badge-esgotado {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .badge-baixo {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .valor-lucro {
+        color: #16a34a;
+        font-weight: 600;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -16,9 +123,9 @@
     </div>
 
     <div class="form-box">
-        <div class="row g-4 mx-0">
+        <div class="row g-3 mx-0">
 
-            <div class="col-md-6">
+            <div class="col-md-2">
                 <div class="info-group">
                     <label class="info-label">ID</label>
                     <div class="info-value">{{ produto.id_item }}</div>
@@ -32,28 +139,28 @@
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="info-group">
                     <label class="info-label">Categoria</label>
                     <div class="info-value">{{ produto.get_categoria_display }}</div>
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="info-group">
                     <label class="info-label">Marca</label>
                     <div class="info-value">{{ produto.marca }}</div>
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="info-group">
                     <label class="info-label">Coleção</label>
                     <div class="info-value">{{ produto.colecao }}</div>
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="info-group">
                     <label class="info-label">Lucro (%)</label>
                     <div class="info-value">{{ produto.lucro }}%</div>
@@ -62,31 +169,49 @@
 
         </div>
 
-        <div class="form-title-box mt-4">
-            <h4>Variações</h4>
+        <div class="form-title-box titulo-variacoes mt-4">
+            <h4 class="mb-0">Variações</h4>
+            {% if estoque_total is not None %}
+            <span class="estoque-total">Estoque total: <strong>{{ estoque_total }}</strong> un.</span>
+            {% endif %}
         </div>
 
         <div class="table-responsive">
-            <table class="table align-middle">
+            <table class="table align-middle tabela-variacoes">
                 <thead>
                     <tr>
                         <th>Tamanho</th>
                         <th>Quantidade</th>
                         <th>Valor Bruto</th>
                         <th>Preço de Venda</th>
+                        <th>Lucro (R$)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for v in variacoes %}
                     <tr>
                         <td>{{ v.tamanho }}</td>
-                        <td>{{ v.quantidade }}</td>
+                        <td>
+                            {{ v.quantidade }}
+                            {% if v.quantidade == 0 %}
+                                <span class="badge-estoque badge-esgotado">Esgotado</span>
+                            {% elif v.quantidade <= 2 %}
+                                <span class="badge-estoque badge-baixo">Estoque baixo</span>
+                            {% endif %}
+                        </td>
                         <td>R$ {{ v.valor_bruto }}</td>
                         <td>R$ {{ v.preco_venda }}</td>
+                        <td>
+                            {% if v.lucro_reais is not None %}
+                                <span class="valor-lucro">R$ {{ v.lucro_reais|floatformat:2 }}</span>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center text-muted py-3">
+                        <td colspan="5" class="text-center text-muted py-3">
                             Nenhuma variação cadastrada.
                         </td>
                     </tr>

@@ -68,7 +68,8 @@ class Venda(models.Model):
 
 class ItemVenda(models.Model):
     venda          = models.ForeignKey(Venda, on_delete=models.CASCADE, related_name='itens')
-    variacao       = models.ForeignKey(ProdutoVariacao, on_delete=models.CASCADE)
+    # PROTECT: impede apagar de verdade uma variação que já foi vendida
+    variacao       = models.ForeignKey(ProdutoVariacao, on_delete=models.PROTECT)
     quantidade     = models.IntegerField()
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
 

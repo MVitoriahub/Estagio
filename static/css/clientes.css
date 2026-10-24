@@ -273,3 +273,266 @@
     background-color: #f8f9fa;
     border-top: 1px solid #dee2e6;
 }
+
+/* ==========================================================================
+   LISTAGEM DE CLIENTES  (clientes/listar.html)
+
+   Tudo fica dentro de .lc-pagina, então as telas de criar, editar,
+   visualizar, excluir e de vendas continuam exatamente como estavam.
+   ========================================================================== */
+
+.lc-pagina {
+    --lc-primary: #b23ad6;            /* mesmo roxo do btn-salvar / btn-editar */
+    --lc-primary-dark: #9c2fc0;
+    --lc-primary-soft: #f4e6fa;
+    --lc-text: #3f4c58;
+    --lc-text-soft: #4b5563;          /* contraste AA sobre o fundo #f8f8f8 */
+    --lc-border: #bfc7ce;
+    --lc-field: #9aa8b5;              /* borda dos campos (mais visível que #c4ced7) */
+    --lc-focus: #f59e0b;
+}
+
+/* ---------- Foco visível (teclado) ---------- */
+.lc-pagina a:focus-visible,
+.lc-pagina button:focus-visible,
+.lc-pagina select:focus-visible,
+.lc-pagina input:focus-visible {
+    outline: 3px solid var(--lc-focus);
+    outline-offset: 2px;
+}
+
+/* ---------- Botão "Novo Cliente" em destaque ---------- */
+.lc-pagina .btn-novo {
+    background-color: var(--lc-primary);
+    border-color: var(--lc-primary);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 4px;
+}
+.lc-pagina .btn-novo:hover {
+    background-color: var(--lc-primary-dark);
+    border-color: var(--lc-primary-dark);
+    color: #fff;
+}
+
+/* ---------- Título e busca ---------- */
+.lc-pagina .section-header h5 { color: var(--lc-text) !important; }   /* mais contraste que o cinza do Bootstrap */
+
+.lc-pagina .search-box {
+    width: min(100%, 380px);
+    height: 44px;
+    border: 2px solid var(--lc-field);
+}
+.lc-pagina .search-box:focus-within { outline: 3px solid var(--lc-focus); outline-offset: 2px; }
+.lc-pagina .search-box input:focus-visible { outline: 0; }            /* o foco aparece na caixa toda */
+.lc-pagina .search-box input { color: var(--lc-text); }
+.lc-pagina .search-box input::placeholder { color: var(--lc-text-soft); opacity: 1; }
+
+/* ---------- Filtros ---------- */
+.lc-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 4px 0 16px;
+    border-bottom: 1px solid #d6dbe0;
+}
+.lc-campo { display: grid; gap: 4px; flex: 1 1 150px; max-width: 220px; }
+.lc-campo label { font-size: 13px; font-weight: 600; color: var(--lc-text); }
+.lc-so-mobile { display: none; }
+
+.lc-pagina .lc-filtros .form-control,
+.lc-pagina .lc-filtros .form-select,
+.lc-pagina .lc-por-pagina .form-select {
+    border: 2px solid var(--lc-field);
+    border-radius: 0;
+    background-color: #fff;
+    color: var(--lc-text);
+}
+.lc-pagina .lc-filtros .form-select { height: 44px; }
+.lc-pagina .lc-por-pagina .form-select { height: 36px; }
+
+/* ---------- Contador / limpar filtros ---------- */
+.lc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+}
+.lc-contador { color: var(--lc-text-soft); font-size: 14px; }
+.lc-limpar { color: var(--lc-primary-dark); font-weight: 600; font-size: 14px; }
+
+/* ---------- Tabela: zebra + hover ---------- */
+.lc-tabela .table {
+    --bs-table-striped-bg: #eef1f4;
+    --bs-table-hover-bg: #dff0f8;
+    margin-bottom: 0;
+}
+.lc-tabela th,
+.lc-tabela td { padding: 14px 12px; }
+.lc-tabela td:nth-child(1),
+.lc-tabela td:nth-child(3),
+.lc-tabela td:nth-child(4),
+.lc-tabela td:nth-child(6) { font-variant-numeric: tabular-nums; }
+
+/* ---------- Ordenação por coluna ---------- */
+.lc-tabela thead th[aria-sort="ascending"],
+.lc-tabela thead th[aria-sort="descending"] { background-color: var(--lc-primary-soft); }
+
+a.lc-ordenar {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .25rem .4rem;
+    margin: -.25rem -.4rem;
+    border-radius: 4px;
+    color: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+a.lc-ordenar:hover { background: rgba(178, 58, 214, .12); color: inherit; }
+a.lc-ordenar .bi { font-size: .75rem; opacity: .5; }
+th[aria-sort="ascending"] a.lc-ordenar .bi,
+th[aria-sort="descending"] a.lc-ordenar .bi { opacity: 1; color: var(--lc-primary-dark); }
+
+/* ---------- Status ---------- */
+.lc-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.lc-ativo   { background: #dcf5e4; color: #14532d; }
+.lc-inativo { background: #e5e7eb; color: #374151; }
+
+/* ---------- Ações (área de toque maior, ícone de editar com mais contraste) ---------- */
+.lc-acoes { white-space: nowrap; }
+.lc-pagina .action-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-right: 0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+}
+.lc-pagina .action-icon:hover { background: #fff; border-color: #d6dbe0; }
+.lc-pagina .icon-edit { color: #a67c00; }          /* o #d4a300 original tem pouco contraste */
+
+/* ---------- Paginação ---------- */
+.lc-pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0 0;
+    border-top: 1px solid #d6dbe0;
+}
+.lc-por-pagina {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--lc-text-soft);
+    font-size: 14px;
+}
+.lc-por-pagina select { width: auto; }
+.lc-pager .page-link { min-width: 40px; text-align: center; color: var(--lc-primary-dark); }
+.lc-pager .page-item.active .page-link {
+    background-color: var(--lc-primary);
+    border-color: var(--lc-primary);
+    color: #fff;
+    font-weight: 700;
+}
+.lc-pager .page-item.disabled .page-link { color: var(--lc-text-soft); }
+
+/* ---------- Estado vazio ---------- */
+.lc-vazio { text-align: center; padding: 48px 16px; }
+.lc-vazio .bi { font-size: 2.5rem; color: var(--lc-text-soft); }
+.lc-vazio h6 { margin: 12px 0 4px; font-weight: 700; font-size: 17px; color: var(--lc-text); }
+.lc-vazio p { margin-bottom: 16px; color: var(--lc-text-soft); }
+
+/* ---------- Skeleton (enquanto a lista é atualizada) ---------- */
+#area-lista.carregando { cursor: progress; }
+#area-lista.carregando .lc-meta,
+#area-lista.carregando .lc-pager { opacity: .6; }
+#area-lista.carregando tbody tr { pointer-events: none; }
+#area-lista.carregando tbody td { position: relative; color: transparent !important; }
+#area-lista.carregando tbody td > * { visibility: hidden; }
+#area-lista.carregando tbody td::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 50%;
+    height: 14px;
+    transform: translateY(-50%);
+    border-radius: 6px;
+    background: linear-gradient(90deg, #e2e6ea 25%, #f1f3f5 37%, #e2e6ea 63%);
+    background-size: 400% 100%;
+    animation: lc-shimmer 1.2s infinite;
+}
+@keyframes lc-shimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #area-lista.carregando tbody td::after { animation: none; }
+}
+
+/* ---------- Telas menores (abaixo de 992px): a tabela vira cards ---------- */
+@media (max-width: 991.98px) {
+    .lc-so-mobile { display: grid; }
+    .lc-campo { max-width: none; }
+
+    .lc-tabela table,
+    .lc-tabela tbody,
+    .lc-tabela tr,
+    .lc-tabela td { display: block; width: 100%; }
+
+    .lc-tabela thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+    }
+
+    .lc-tabela tbody tr {
+        margin: 12px 0;
+        padding: 8px 4px;
+        border: 1px solid #d5dbe1;
+        border-radius: 6px;
+        background: #fff;
+    }
+    .lc-tabela tbody tr:hover { background: #eef7fb; }
+
+    .lc-tabela td {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 8px 12px;
+        border: 0 !important;
+        text-align: right;
+        background: transparent;
+        box-shadow: none;           /* anula a zebra do Bootstrap nas células */
+    }
+    .lc-tabela td[data-label]::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--lc-text);
+        text-align: left;
+    }
+    .lc-tabela td.lc-acoes {
+        justify-content: flex-end;
+        margin-top: 4px;
+        padding-top: 12px;
+        border-top: 1px solid #d6dbe0 !important;
+    }
+
+    .lc-pager { justify-content: center; }
+}

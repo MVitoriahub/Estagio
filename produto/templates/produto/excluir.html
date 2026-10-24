@@ -5,6 +5,61 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+<style>
+    .alert-delete {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .alert-delete i {
+        font-size: 20px;
+        color: #dc2626;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .cliente-info p strong {
+        display: inline-block;
+        min-width: 160px;
+    }
+
+    .titulo-variacoes {
+        display: block;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .cliente-info ul {
+        margin-top: 8px;
+        padding-left: 20px;
+    }
+
+    .cliente-info ul li {
+        margin-bottom: 4px;
+    }
+
+    .qtd-com-estoque {
+        color: #dc2626;
+        font-weight: 600;
+    }
+
+    .d-flex.gap-2.justify-content-center {
+        margin-top: 20px;
+    }
+
+    .btn-cancelar {
+        order: 1;
+    }
+
+    .btn-excluir {
+        order: 2;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -17,7 +72,8 @@
 
     <div class="form-box">
         <div class="alert-delete">
-            Tem certeza que deseja excluir este produto? Todas as variações serão removidas também.
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>Tem certeza que deseja excluir este produto? Todas as variações serão removidas também.</span>
         </div>
 
         <div class="cliente-info">
@@ -27,10 +83,15 @@
             <p><strong>Marca:</strong> {{ produto.marca }}</p>
             <p><strong>Coleção:</strong> {{ produto.colecao }}</p>
             <p><strong>Lucro:</strong> {{ produto.lucro }}%</p>
-            <p><strong>Variações que serão excluídas:</strong></p>
+            <p class="titulo-variacoes"><strong>Variações que serão excluídas:</strong></p>
             <ul>
                 {% for v in produto.variacoes.all %}
-                <li>Tamanho {{ v.tamanho }} — {{ v.quantidade }} unidades</li>
+                <li>
+                    Tamanho {{ v.tamanho }} —
+                    <span class="{% if v.quantidade > 0 %}qtd-com-estoque{% endif %}">
+                        {{ v.quantidade }} unidades
+                    </span>
+                </li>
                 {% empty %}
                 <li>Nenhuma variação cadastrada.</li>
                 {% endfor %}
@@ -40,8 +101,8 @@
         <form method="POST">
             {% csrf_token %}
             <div class="d-flex gap-2 justify-content-center">
-                <button type="submit" class="btn-excluir">Excluir</button>
                 <a href="{% url 'produto:listar' %}" class="btn-cancelar">Cancelar</a>
+                <button type="submit" class="btn-excluir">Excluir</button>
             </div>
         </form>
     </div>

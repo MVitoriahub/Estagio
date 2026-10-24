@@ -11,50 +11,248 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
+    <style>
+        .main-wrapper .row {
+            align-items: stretch;
+        }
+
+        .sidebar {
+            min-height: 100%;
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 16px 0;
+        }
+
+        .content-area {
+            min-height: 100%;
+        }
+
+        /* ---------- Acessibilidade: pular para o conteúdo ---------- */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 8px;
+            z-index: 3000;
+            background: #000;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 6px;
+        }
+        .skip-link:focus { left: 8px; color: #fff; }
+
+        /* ---------- Menu lateral: item da página atual ---------- */
+        .sidebar .nav-link.active {
+            background: #f4e6fa;
+            color: #7a1f99;
+            font-weight: 700;
+            box-shadow: inset 4px 0 0 #b23ad6;
+        }
+        .sidebar .nav-link:focus-visible {
+            outline: 3px solid #f59e0b;
+            outline-offset: -3px;
+        }
+
+        /* ---------- Menu retrátil (celular) ---------- */
+        .topbar { position: relative; }
+
+        .menu-toggle,
+        .menu-fechar {
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border: 1px solid #cfd8de;
+            border-radius: 10px;
+            background: #fff;
+            color: #1f2937;
+            font-size: 1.4rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .menu-toggle:hover,
+        .menu-fechar:hover { background: #f1f6f9; }
+        .menu-toggle:focus-visible,
+        .menu-fechar:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+
+        .menu-toggle { display: none; }
+        .menu-fechar { display: none; margin: 0 12px 8px auto; }
+        .menu-overlay { display: none; }
+
+        @media (max-width: 767.98px) {
+            .topbar { padding-left: 64px; min-height: 52px; }   /* espaço para o botão do menu */
+            .menu-toggle {
+                display: inline-flex;
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .main-wrapper .row > .sidebar-col {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 270px;
+                max-width: 85vw;
+                padding: 12px;
+                z-index: 1050;
+                background: #fff;
+                overflow-y: auto;
+                box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+                transform: translateX(-105%);
+                visibility: hidden;                /* some do foco quando fechado */
+                transition: transform .25s ease, visibility .25s;
+            }
+            .sidebar-col .menu-fechar { display: flex; }
+            .sidebar-col .sidebar { min-height: 0; }
+
+            body.menu-aberto .main-wrapper .row > .sidebar-col { transform: none; visibility: visible; }
+            body.menu-aberto .menu-overlay {
+                display: block;
+                position: fixed;
+                inset: 0;
+                z-index: 1040;
+                background: rgba(0, 0, 0, 0.45);
+            }
+            body.menu-aberto { overflow: hidden; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .main-wrapper .row > .sidebar-col { transition: none; }
+        }
+
+        /* Avisos do sistema: canto superior direito, sem empurrar a página */
+        .toasts {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 360px;
+            max-width: calc(100vw - 32px);
+        }
+
+        .toast-msg {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border-left: 5px solid;
+            font-size: 14px;
+            line-height: 1.35;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .toast-msg.saindo {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        .toast-msg .toast-texto { flex: 1; }
+
+        .toast-msg .toast-fechar {
+            background: none;
+            border: none;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.6;
+            padding: 0;
+        }
+
+        .toast-msg .toast-fechar:hover { opacity: 1; }
+
+        .toast-success { background: #f0fdf4; color: #166534; border-color: #22c55e; }
+        .toast-warning { background: #fffbeb; color: #92400e; border-color: #f59e0b; }
+        .toast-error   { background: #fef2f2; color: #991b1b; border-color: #ef4444; }
+        .toast-info    { background: #eff6ff; color: #1e40af; border-color: #3b82f6; }
+    </style>
+
     {% block extra_css %}{% endblock %}
 </head>
 
 <body>
 
+<a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
+
+{% if messages %}
+<div class="toasts" id="toasts">
+    {% for message in messages %}
+    <div class="toast-msg toast-{{ message.tags }}" data-tipo="{{ message.tags }}">
+        <span class="toast-texto">{{ message }}</span>
+        <button type="button" class="toast-fechar" aria-label="Fechar">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="container-fluid p-3">
 
     <div class="topbar">
+        <button type="button" class="menu-toggle" id="menuToggle"
+                aria-label="Abrir menu" aria-expanded="false" aria-controls="menuLateral">
+            <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
         <span class="brand-title">Lacinho System</span>
     </div>
 
     <div class="main-wrapper">
         <div class="row g-3">
 
-            <div class="col-md-2">
-                <div class="sidebar">
-                    <a href="{% url 'relatorios:dashboard' %}" class="nav-link d-block">
-                        <i class="bi bi-house-door-fill"></i> Dashboard
+            <div class="col-md-2 sidebar-col" id="menuLateral">
+                <button type="button" class="menu-fechar" aria-label="Fechar menu">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+
+                {# "request" vem do context processor padrão do Django; sem ele nenhum item fica marcado, mas nada quebra #}
+                {% with vn=request.resolver_match.view_name ns=request.resolver_match.namespace %}
+                <nav class="sidebar" aria-label="Menu principal">
+                    <a href="{% url 'relatorios:dashboard' %}"
+                       class="nav-link d-block {% if vn == 'relatorios:dashboard' %}active{% endif %}"
+                       {% if vn == 'relatorios:dashboard' %}aria-current="page"{% endif %}>
+                        <i class="bi bi-house-door-fill" aria-hidden="true"></i> Dashboard
                     </a>
 
-                    <a href="{% url 'produto:listar' %}" class="nav-link d-block">
-                        <i class="bi bi-box-seam"></i> Gerenciar Produto
+                    <a href="{% url 'produto:listar' %}"
+                       class="nav-link d-block {% if ns == 'produto' %}active{% endif %}"
+                       {% if ns == 'produto' %}aria-current="page"{% endif %}>
+                        <i class="bi bi-box-seam" aria-hidden="true"></i> Gerenciar Produto
                     </a>
 
-                    <a href="{% url 'estoque:listar' %}" class="nav-link d-block">
-                        <i class="bi bi-clipboard2-data"></i> Gerenciar Estoque
+                    <a href="{% url 'estoque:listar' %}"
+                       class="nav-link d-block {% if ns == 'estoque' %}active{% endif %}"
+                       {% if ns == 'estoque' %}aria-current="page"{% endif %}>
+                        <i class="bi bi-clipboard2-data" aria-hidden="true"></i> Gerenciar Estoque
                     </a>
 
-                    <a href="{% url 'clientes:listar_clientes' %}" class="nav-link d-block">
-                        <i class="bi bi-people"></i> Gerenciar Cliente
+                    <a href="{% url 'clientes:listar_clientes' %}"
+                       class="nav-link d-block {% if ns == 'clientes' %}active{% endif %}"
+                       {% if ns == 'clientes' %}aria-current="page"{% endif %}>
+                        <i class="bi bi-people" aria-hidden="true"></i> Gerenciar Clientes
                     </a>
 
-                    <a href="{% url 'venda:listar' %}" class="nav-link d-block">
-                        <i class="bi bi-cart-fill"></i> Gerenciar Venda
+                    <a href="{% url 'venda:listar' %}"
+                       class="nav-link d-block {% if ns == 'venda' %}active{% endif %}"
+                       {% if ns == 'venda' %}aria-current="page"{% endif %}>
+                        <i class="bi bi-cart-fill" aria-hidden="true"></i> Gerenciar Venda
                     </a>
 
-                    <a href="{% url 'relatorios:home' %}" class="nav-link d-block">
-                        <i class="bi bi-file-earmark-bar-graph"></i> Gerar Relatorio
+                    <a href="{% url 'relatorios:home' %}"
+                       class="nav-link d-block {% if ns == 'relatorios' and vn != 'relatorios:dashboard' %}active{% endif %}"
+                       {% if ns == 'relatorios' and vn != 'relatorios:dashboard' %}aria-current="page"{% endif %}>
+                        <i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i> Gerar Relatório
                     </a>
-                </div>
+                </nav>
+                {% endwith %}
             </div>
 
             <div class="col-md-10">
-                <div class="content-area">
+                <div class="content-area" id="conteudo" tabindex="-1">
                     {% block content %}
                     {% endblock %}
                 </div>
@@ -65,7 +263,61 @@
 
 </div>
 
+<div class="menu-overlay" id="menuOverlay"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Avisos: fecham no X ou sozinhos (sucesso 5s; aviso/erro 12s)
+    document.querySelectorAll('.toast-msg').forEach(function (toast) {
+        function fechar() {
+            toast.classList.add('saindo');
+            setTimeout(function () { toast.remove(); }, 300);
+        }
+        toast.querySelector('.toast-fechar').addEventListener('click', fechar);
+        var tempo = toast.dataset.tipo === 'success' ? 5000 : 12000;
+        setTimeout(fechar, tempo);
+    });
+
+    // Menu retrátil (celular): botão, fundo escuro, tecla Esc e clique num link fecham
+    (function () {
+        var botao = document.getElementById('menuToggle');
+        var menu = document.getElementById('menuLateral');
+        var fundo = document.getElementById('menuOverlay');
+        if (!botao || !menu || !fundo) return;
+
+        function definir(aberto) {
+            document.body.classList.toggle('menu-aberto', aberto);
+            botao.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+            botao.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
+            if (aberto) {
+                // espera o menu ficar visível (visibility) antes de mover o foco
+                setTimeout(function () {
+                    var primeiro = menu.querySelector('.sidebar a');
+                    if (primeiro) primeiro.focus();
+                }, 50);
+            }
+        }
+
+        botao.addEventListener('click', function () {
+            definir(!document.body.classList.contains('menu-aberto'));
+        });
+        fundo.addEventListener('click', function () { definir(false); });
+        menu.addEventListener('click', function (e) {
+            if (e.target.closest('.menu-fechar') || e.target.closest('.sidebar a')) definir(false);
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && document.body.classList.contains('menu-aberto')) {
+                definir(false);
+                botao.focus();
+            }
+        });
+        window.matchMedia('(min-width: 768px)').addEventListener('change', function (e) {
+            if (e.matches) definir(false);
+        });
+    })();
+</script>
+
 {% block extra_js %}{% endblock %}
 
 </body>

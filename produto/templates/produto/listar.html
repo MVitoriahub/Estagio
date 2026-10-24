@@ -5,24 +5,100 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+<style>
+    .toolbar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .toolbar-header h5 {
+        margin: 0;
+    }
+
+    .toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .action-icon {
+        padding: 6px 8px;
+        border-radius: 6px;
+        transition: background-color 0.15s ease;
+        margin-right: 2px;
+    }
+
+    .action-icon:hover {
+        background-color: #f3f4f6;
+    }
+
+    .icon-view:hover {
+        background-color: #dbeafe;
+    }
+
+    .icon-edit:hover {
+        background-color: #fef3c7;
+    }
+
+    .icon-delete:hover {
+        background-color: #fee2e2;
+    }
+
+    .badge-categoria {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .paginacao {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 20px;
+    }
+
+    .paginacao a, .paginacao span {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        color: #374151;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .paginacao a:hover {
+        background-color: #f3f4f6;
+    }
+
+    .paginacao .ativo {
+        background-color: #3b82f6;
+        color: #fff;
+        border-color: #3b82f6;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 
 <div class="content-panel">
 
-    <div class="toolbar-box">
-        <a href="{% url 'produto:criar' %}" class="btn-novo">+ Novo Produto</a>
-    </div>
-
-    <div class="section-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-semibold text-secondary">Gerenciar Produtos</h5>
-        <form method="get" class="d-flex align-items-center">
-            <div class="search-box">
-                <i class="bi bi-search me-2 text-secondary"></i>
-                <input type="text" name="q" value="{{ busca }}">
-            </div>
-        </form>
+    <div class="toolbar-header">
+        <h5 class="fw-semibold text-secondary">Gerenciar Produtos</h5>
+        <div class="toolbar-actions">
+            <form method="get" class="d-flex align-items-center">
+                <div class="search-box">
+                    <i class="bi bi-search me-2 text-secondary"></i>
+                    <input type="text" name="q" value="{{ busca }}">
+                </div>
+            </form>
+            <a href="{% url 'produto:criar' %}" class="btn-novo">+ Novo Produto</a>
+        </div>
     </div>
 
     <div class="table-responsive">
@@ -35,7 +111,7 @@
                     <th>Marca</th>
                     <th>Coleção</th>
                     <th>Variações</th>
-                    <th style="width: 120px;">Ações</th>
+                    <th style="width: 140px;">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -43,7 +119,11 @@
                 <tr>
                     <td>{{ produto.id_item }}</td>
                     <td>{{ produto.item }}</td>
-                    <td>{{ produto.get_categoria_display }}</td>
+                    <td>
+                        <span class="badge-categoria" style="background: {{ produto.cor_categoria }}1a; color: {{ produto.cor_categoria }};">
+                            {{ produto.get_categoria_display }}
+                        </span>
+                    </td>
                     <td>{{ produto.marca }}</td>
                     <td>{{ produto.colecao }}</td>
                     <td>{{ produto.variacoes.count }}</td>
@@ -69,6 +149,26 @@
             </tbody>
         </table>
     </div>
+
+    {% if produtos.has_other_pages %}
+    <div class="paginacao">
+        {% if produtos.has_previous %}
+            <a href="?page={{ produtos.previous_page_number }}{% if busca %}&q={{ busca }}{% endif %}">&laquo;</a>
+        {% endif %}
+
+        {% for num in produtos.paginator.page_range %}
+            {% if num == produtos.number %}
+                <span class="ativo">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}{% if busca %}&q={{ busca }}{% endif %}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if produtos.has_next %}
+            <a href="?page={{ produtos.next_page_number }}{% if busca %}&q={{ busca }}{% endif %}">&raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
 
 </div>
 

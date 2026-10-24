@@ -11,6 +11,7 @@ class SoftDeleteManager(models.Manager):
 class Produto(models.Model):
 
     CATEGORIA_CHOICES = [
+        ('nao_categorizado', 'Não categorizado'),
         ('blusa', 'Blusa'),
         ('calça', 'Calça'),
         ('shorts', 'Shorts'),
@@ -53,7 +54,7 @@ class Produto(models.Model):
     def __str__(self):
         return f'{self.item} - {self.marca}'
 
-    def delete(self, using=None, keep_parents=False):  
+    def delete(self, using=None, keep_parents=False):
         self.variacoes.filter(deletado=False).update(
             deletado=True,
             deletado_em=timezone.now()
@@ -73,15 +74,16 @@ class ProdutoVariacao(models.Model):
         ('14', '14'), ('16', '16'), ('18', '18'), ('20', '20'),
     ]
 
-    produto     = models.ForeignKey(
+    produto        = models.ForeignKey(
         Produto,
         on_delete=models.CASCADE,
         related_name='variacoes'
     )
-    tamanho     = models.CharField(max_length=10, choices=TAMANHO_CHOICES)
-    quantidade  = models.IntegerField()
-    valor_bruto = models.DecimalField(max_digits=10, decimal_places=2)
-    preco_venda = models.DecimalField(max_digits=10, decimal_places=2, blank=True)
+    tamanho        = models.CharField(max_length=10, choices=TAMANHO_CHOICES)
+    quantidade     = models.IntegerField()
+    valor_bruto    = models.DecimalField(max_digits=10, decimal_places=2)  # custo médio ponderado
+    preco_venda    = models.DecimalField(max_digits=10, decimal_places=2, blank=True)
+    estoque_minimo = models.PositiveIntegerField(default=0)
 
     deletado    = models.BooleanField(default=False)
     deletado_em = models.DateTimeField(null=True, blank=True)
@@ -98,14 +100,36 @@ class ProdutoVariacao(models.Model):
         return f'{self.produto.item} - Tam: {self.tamanho} | Qtd: {self.quantidade}'
 
     def calcular_preco_venda(self):
+        """Só usado como sugestão inicial na criação da variação."""
         lucro_percentual = self.produto.lucro / Decimal('100')
-        return self.valor_bruto * (Decimal('1') + lucro_percentual)
+        return (self.valor_bruto * (Decimal('1') + lucro_percentual)).quantize(Decimal('0.01'))
+
+    @property
+    def lucro_reais(self):
+        return (self.preco_venda or 0) - (self.valor_bruto or 0)
+
+    @property
+    def margem_percentual(self):
+        """Margem sobre o custo médio. Apenas informativa."""
+        if not self.valor_bruto or self.preco_venda is None:
+            return None
+        return ((self.preco_venda - self.valor_bruto) / self.valor_bruto * 100).quantize(Decimal('0.1'))
+
+    @property
+    def status_estoque(self):
+        if self.quantidade <= 0:
+            return 'esgotado'
+        if self.estoque_minimo and self.quantidade <= self.estoque_minimo:
+            return 'baixo'
+        return 'ok'
 
     def save(self, *args, **kwargs):
-        self.preco_venda = self.calcular_preco_venda()
+        # Preço de venda só é calculado se ainda não existe (criação).
+        if self.preco_venda is None:
+            self.preco_venda = self.calcular_preco_venda()
         super().save(*args, **kwargs)
 
-    def delete(self, using=None, keep_parents=False):  
+    def delete(self, using=None, keep_parents=False):
         self.deletado    = True
         self.deletado_em = timezone.now()
         self.save()

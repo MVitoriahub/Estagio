@@ -169,9 +169,14 @@ def gerar_relatorio(request, tipo):
 
 
 def dashboard(request):
+    periodo = request.GET.get('periodo', '15')
+    if periodo not in ('15', '30', '90'):
+        periodo = '15'
+    dias_periodo = int(periodo)
+
     hoje = timezone.now()
-    inicio_atual = hoje - timedelta(days=15)
-    inicio_anterior = hoje - timedelta(days=30)
+    inicio_atual = hoje - timedelta(days=dias_periodo)
+    inicio_anterior = hoje - timedelta(days=dias_periodo * 2)
 
     def dados_periodo(data_inicio, data_fim):
         vendas = Venda.objects.filter(
@@ -180,15 +185,20 @@ def dashboard(request):
             status='finalizada',
         )
         qtd_vendas = vendas.count()
-        faturamento = ItemVenda.objects.filter(
-            venda__in=vendas
-        ).aggregate(
+        itens = ItemVenda.objects.filter(venda__in=vendas)
+        faturamento = itens.aggregate(
             total=Sum(F('quantidade') * F('valor_unitario'), output_field=DecimalField())
         )['total'] or 0
-        return qtd_vendas, faturamento
+        lucro = itens.aggregate(
+            total=Sum(
+                F('quantidade') * (F('valor_unitario') - F('variacao__valor_bruto')),
+                output_field=DecimalField()
+            )
+        )['total'] or 0
+        return qtd_vendas, faturamento, lucro
 
-    qtd_atual, faturamento_atual = dados_periodo(inicio_atual, hoje)
-    qtd_anterior, faturamento_anterior = dados_periodo(inicio_anterior, inicio_atual)
+    qtd_atual, faturamento_atual, lucro_atual = dados_periodo(inicio_atual, hoje)
+    qtd_anterior, faturamento_anterior, lucro_anterior = dados_periodo(inicio_anterior, inicio_atual)
 
     def variacao(atual, anterior):
         if not anterior:
@@ -217,10 +227,10 @@ def dashboard(request):
         for item in itens_recentes
     ]
 
-    # ---- Fluxo da Receita (faturamento por dia, últimos 15 dias) ----
+    # ---- Fluxo da Receita (faturamento por dia, últimos 30 dias, fixo) ----
     fluxo_receita = []
     fluxo_labels = []
-    for i in range(14, -1, -1):
+    for i in range(29, -1, -1):
         dia = (hoje - timedelta(days=i)).date()
         total_dia = ItemVenda.objects.filter(
             venda__status='finalizada',
@@ -231,7 +241,9 @@ def dashboard(request):
         fluxo_receita.append(float(total_dia))
         fluxo_labels.append(dia.strftime('%d/%m'))
 
-    # ---- Mais Vendidos (top 5 produtos por quantidade, período atual) ----
+    # ---- Mais Vendidos (top 5 produtos por quantidade, no período selecionado) ----
+    CORES_BARRAS = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ef4444']
+
     mais_vendidos_qs = (
         ItemVenda.objects
         .filter(
@@ -249,15 +261,20 @@ def dashboard(request):
             'nome': item['variacao__produto__item'],
             'qtd': item['qtd'],
             'percentual': round((item['qtd'] / max_qtd) * 100),
+            'cor': CORES_BARRAS[i % len(CORES_BARRAS)],
         }
-        for item in mais_vendidos_qs
+        for i, item in enumerate(mais_vendidos_qs)
     ]
 
     context = {
+        'periodo': periodo,
         'total_vendas': Venda.objects.filter(status='finalizada').count(),
         'vendas_novas': qtd_atual,
+        'vendas_variacao': variacao(qtd_atual, qtd_anterior),
         'faturamento': faturamento_atual,
         'faturamento_variacao': variacao(faturamento_atual, faturamento_anterior),
+        'lucro': lucro_atual,
+        'lucro_variacao': variacao(lucro_atual, lucro_anterior),
         'total_clientes': total_clientes,
         'clientes_novos': clientes_novos,
         'vendas_recentes': vendas_recentes,

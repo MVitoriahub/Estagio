@@ -5,6 +5,109 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/clientes.css' %}">
+<style>
+    .btn-adicionar-variacao {
+        background-color: #fff;
+        color: #4b5563;
+        border: 1.5px dashed #9ca3af;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.15s ease;
+    }
+
+    .btn-adicionar-variacao:hover {
+        background-color: #f9fafb;
+        border-color: #6b7280;
+        color: #111827;
+    }
+
+    .variacao-linha {
+        display: flex;
+        gap: 16px;
+        align-items: flex-end;
+    }
+
+    .variacao-linha .campo {
+        flex: 1;
+    }
+
+    .variacao-linha .campo-remover {
+        flex: 0 0 auto;
+    }
+
+    .preco-venda-box {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #047857;
+        font-weight: 600;
+    }
+
+    .preco-venda-box.visivel {
+        display: flex;
+    }
+
+    .preco-venda-box i {
+        font-size: 15px;
+    }
+
+    .campo-obrigatorio::after {
+        content: " *";
+        color: #dc2626;
+    }
+
+    .input-group-percent {
+        position: relative;
+    }
+
+    .input-group-percent input {
+        padding-right: 36px;
+    }
+
+    .input-group-percent span {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        font-size: 14px;
+        font-weight: 600;
+        pointer-events: none;
+    }
+
+    .contador-variacoes {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 8px;
+    }
+
+    .resumo-final {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .resumo-final strong {
+        color: #111827;
+    }
+
+    .rodape-acoes {
+    padding: 16px 0;
+    margin-top: 24px;
+    border-top: 1px solid #e5e7eb;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -23,19 +126,19 @@
             </div>
             {% endif %}
 
-            <form method="POST">
+            <form method="POST" id="form-produto">
                 {% csrf_token %}
 
                 <div class="row g-4 mx-0">
 
                     <div class="col-12">
-                        <label class="form-label">Nome do Produto</label>
+                        <label class="form-label campo-obrigatorio">Nome do Produto</label>
                         <input type="text" name="item" class="form-control"
-                               placeholder="Ex: Vestido Floral" required>
+                               placeholder="Ex: Vestido Amarelo Floral" required>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Categoria</label>
+                        <label class="form-label campo-obrigatorio">Categoria</label>
                         <select name="categoria" class="form-control" required>
                             {% for value, label in form.categoria.field.choices %}
                             <option value="{{ value }}">{{ label }}</option>
@@ -44,21 +147,24 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Marca</label>
+                        <label class="form-label campo-obrigatorio">Marca</label>
                         <input type="text" name="marca" class="form-control"
-                               placeholder="Ex: Zara" required>
+                               placeholder="Ex: Hering" required>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Coleção</label>
+                        <label class="form-label campo-obrigatorio">Coleção</label>
                         <input type="text" name="colecao" class="form-control"
-                               placeholder="Ex: Verão 2025" required>
+                               placeholder="Ex: Verão 2026" required>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Lucro (%)</label>
-                        <input type="number" name="lucro" class="form-control"
-                               placeholder="Ex: 30" step="0.01" required>
+                        <label class="form-label campo-obrigatorio">Lucro (%)</label>
+                        <div class="input-group-percent">
+                            <input type="number" name="lucro" id="id_lucro" class="form-control"
+                                   placeholder="Ex: 30" step="0.01" required>
+                            <span>%</span>
+                        </div>
                     </div>
 
                 </div>
@@ -72,10 +178,10 @@
                 <div id="variacoes-container">
                     {% for variacao_form in formset %}
                     <div class="form-box mb-3 variacao-item">
-                        <div class="row g-3 mx-0 align-items-end">
+                        <div class="variacao-linha">
 
-                            <div class="col-md-3">
-                                <label class="form-label">Tamanho</label>
+                            <div class="campo">
+                                <label class="form-label campo-obrigatorio">Tamanho</label>
                                 <select name="{{ variacao_form.tamanho.html_name }}" class="form-control">
                                     {% for value, label in variacao_form.tamanho.field.choices %}
                                     <option value="{{ value }}">{{ label }}</option>
@@ -83,36 +189,49 @@
                                 </select>
                             </div>
 
-                            <div class="col-md-3">
-                                <label class="form-label">Quantidade</label>
+                            <div class="campo">
+                                <label class="form-label campo-obrigatorio">Quantidade</label>
                                 <input type="number" name="{{ variacao_form.quantidade.html_name }}"
-                                       class="form-control" placeholder="Ex: 5" min="0">
+                                       class="form-control campo-quantidade" placeholder="Ex: 5" min="0">
                             </div>
 
-                            <div class="col-md-3">
-                                <label class="form-label">Valor Bruto (R$)</label>
-                                <input type="number" name="{{ variacao_form.valor_bruto.html_name }}"
-                                       class="form-control" placeholder="Ex: 50.00" step="0.01" min="0">
+                            <div class="campo">
+                                <label class="form-label campo-obrigatorio">Valor Bruto (R$)</label>
+                                <input type="text" name="{{ variacao_form.valor_bruto.html_name }}"
+                                       class="form-control valor-bruto-mask" placeholder="Ex: 50,00"
+                                       inputmode="decimal">
                             </div>
 
-                            <div class="col-md-1 d-flex align-items-end pb-1">
+                            <div class="campo-remover">
                                 <button type="button" class="btn btn-danger btn-sm remover-variacao">✕</button>
                             </div>
 
+                        </div>
+
+                        <div class="preco-venda-box">
+                            <i class="bi bi-tag-fill"></i>
+                            <span>Preço de venda sugerido: <span class="preco-venda-valor">R$ 0,00</span></span>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
 
-                <div class="mt-2 mb-4">
-                    <button type="button" id="btn-adicionar-variacao" class="btn-salvar">
+                <div class="mt-2 mb-2">
+                    <button type="button" id="btn-adicionar-variacao" class="btn-adicionar-variacao">
                         + Adicionar Variação
                     </button>
+                    <div class="contador-variacoes" id="contador-variacoes">1 variação adicionada</div>
                 </div>
 
-                <div class="mt-4 d-flex gap-2 justify-content-center">
-                    <button type="submit" class="btn-salvar">Salvar</button>
-                    <a href="{% url 'produto:listar' %}" class="btn-cancelar">Cancelar</a>
+                <div class="rodape-acoes">
+                    <div class="resumo-final">
+                        <span>Total de variações: <strong id="resumo-variacoes">1</strong></span>
+                        <span>Total em estoque: <strong id="resumo-estoque">0</strong> unidades</span>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="submit" class="btn-salvar">Salvar</button>
+                        <a href="{% url 'produto:listar' %}" class="btn-cancelar">Cancelar</a>
+                    </div>
                 </div>
 
             </form>
@@ -123,10 +242,84 @@
 <script>
     const container       = document.getElementById('variacoes-container');
     const totalFormsInput = document.getElementById('id_variacoes-TOTAL_FORMS');
+    const inputLucro      = document.getElementById('id_lucro');
+    const contadorEl      = document.getElementById('contador-variacoes');
+    const resumoVariacoes = document.getElementById('resumo-variacoes');
+    const resumoEstoque   = document.getElementById('resumo-estoque');
 
     // Captura o HTML do primeiro item como template antes de qualquer interação
     const templateItem = container.querySelector('.variacao-item').cloneNode(true);
     templateItem.querySelectorAll('input').forEach(input => input.value = '');
+    templateItem.querySelector('.preco-venda-box').classList.remove('visivel');
+    templateItem.querySelector('.preco-venda-valor').textContent = 'R$ 0,00';
+
+    // ---- Máscara de moeda brasileira ----
+    function aplicarMascaraMoeda(input) {
+        let valor = input.value.replace(/\D/g, '');
+        if (!valor) {
+            input.value = '';
+            return;
+        }
+        valor = (parseInt(valor, 10) / 100).toFixed(2);
+        input.value = valor.replace('.', ',');
+    }
+
+    function valorNumerico(valorMascarado) {
+        if (!valorMascarado) return 0;
+        return parseFloat(valorMascarado.replace(',', '.')) || 0;
+    }
+
+    // ---- Calcula e exibe o preço de venda em tempo real ----
+    function atualizarPrecoVenda(itemVariacao) {
+        const inputValorBruto = itemVariacao.querySelector('.valor-bruto-mask');
+        const box             = itemVariacao.querySelector('.preco-venda-box');
+        const valorEl         = itemVariacao.querySelector('.preco-venda-valor');
+
+        const valorBruto = valorNumerico(inputValorBruto.value);
+        const lucroPct   = parseFloat(inputLucro.value) || 0;
+
+        if (valorBruto > 0) {
+            const precoVenda = valorBruto * (1 + lucroPct / 100);
+            valorEl.textContent = 'R$ ' + precoVenda.toFixed(2).replace('.', ',');
+            box.classList.add('visivel');
+        } else {
+            box.classList.remove('visivel');
+        }
+    }
+
+    function atualizarTodosPrecos() {
+        container.querySelectorAll('.variacao-item').forEach(atualizarPrecoVenda);
+    }
+
+    // ---- Atualiza contador de variações + resumo (total e estoque) ----
+    function atualizarResumo() {
+        const itens = container.querySelectorAll('.variacao-item');
+        const qtd   = itens.length;
+
+        contadorEl.textContent = qtd === 1 ? '1 variação adicionada' : `${qtd} variações adicionadas`;
+        resumoVariacoes.textContent = qtd;
+
+        let totalEstoque = 0;
+        itens.forEach(item => {
+            const campoQtd = item.querySelector('.campo-quantidade');
+            totalEstoque += parseInt(campoQtd.value) || 0;
+        });
+        resumoEstoque.textContent = totalEstoque;
+    }
+
+    // Eventos: máscara + recálculo ao digitar valor bruto
+    container.addEventListener('input', function (e) {
+        if (e.target.classList.contains('valor-bruto-mask')) {
+            aplicarMascaraMoeda(e.target);
+            atualizarPrecoVenda(e.target.closest('.variacao-item'));
+        }
+        if (e.target.classList.contains('campo-quantidade')) {
+            atualizarResumo();
+        }
+    });
+
+    // Recalcula todos quando o lucro do produto muda
+    inputLucro.addEventListener('input', atualizarTodosPrecos);
 
     // Botão adicionar
     document.getElementById('btn-adicionar-variacao').addEventListener('click', function () {
@@ -140,16 +333,17 @@
 
         container.appendChild(novaVariacao);
         totalFormsInput.value = totalForms + 1;
+        atualizarResumo();
     });
 
-    // Botão remover (delegação de evento para capturar itens adicionados dinamicamente)
+    // Botão remover
     container.addEventListener('click', function (e) {
         if (e.target.classList.contains('remover-variacao')) {
             const itens = container.querySelectorAll('.variacao-item');
-            // Impede remover se só restar 1 variação
             if (itens.length > 1) {
                 e.target.closest('.variacao-item').remove();
                 atualizarIndices();
+                atualizarResumo();
             }
         }
     });
@@ -165,6 +359,16 @@
         });
         totalFormsInput.value = container.querySelectorAll('.variacao-item').length;
     }
+
+    // ---- Converte vírgula para ponto antes de enviar o formulário ----
+    document.getElementById('form-produto').addEventListener('submit', function () {
+        document.querySelectorAll('.valor-bruto-mask').forEach(function (input) {
+            input.value = input.value.replace(',', '.');
+        });
+    });
+
+    // Inicializa resumo ao carregar a página
+    atualizarResumo();
 </script>
 
 {% endblock %}
